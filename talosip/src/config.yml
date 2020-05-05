@@ -1,0 +1,16 @@
+opencti:
+  url: 'http://localhost:8080'
+  token: ''
+  
+connector:
+  id: 'f4c54571-4f01-4ac5-8495-eae51748872e'
+  type: 'EXTERNAL_IMPORT'
+  name: 'Talos IP blacklist'
+  scope: 'ipv4-addr'
+  confidence_level: 3
+  log_level: 'info'
+  
+talosip:
+  max_tlp: 'TLP:AMBER'
+  url: 'https://talosintelligence.com/documents/ip-blacklist'
+  interval: 7
