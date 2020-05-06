@@ -25,15 +25,12 @@ class Talosip:
         )
         self.helper = OpenCTIConnectorHelper(config)
 
-        self.identity = self.helper.api.identity.create(
-            type="identiry",
-            name="Cisco Talos"
-        )
         self.marker_definition = self.helper.api.marking_definition.create(
             type="marking-definition",
             name="Ipv4-blacklist",
             definition_type="statement",
-            definition="Cisco"
+            definition="Cisco",
+            update=True
         )
 
     def get_interval(self):
@@ -43,21 +40,15 @@ class Talosip:
         ip_lists = open("ip_blacklist.txt", "r")
         print("File downloaded. Processing data...")
         for ip in ip_lists:
-            ip = ip.strip("\n")
-            observable = self.helper.api.stix_observable.create(
-                type="ipv4-addr",
-                observable_value=ip,
-                description="from talos via OPENCTI",
-                createdByRef=self.identity,
-                createIndicator="True",
-                markingDefinitions=self.marker_definition
-            )
-        print(indicator)
+            ip = ip.strip("\n") 
+            _bundle = self._create_indicator(ip)
+            print(_bundle)
+            self._send_bundle(_bundle)
 
     def _send_bundle(self, bundle: Bundle):
         serialized_bundle = bundle.serialize()
         self.helper.send_stix2_bundle(
-            serialized_bundle, None, self.update_existing_data, False
+            serialized_bundle, None, True, False
         )
 
     def _create_indicator(self, data):

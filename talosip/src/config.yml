@@ -1,6 +1,6 @@
 opencti:
-  url: 'http://localhost:8080'
-  token: ''
+  url: 'http://localhost'
+  token: '64694d09-67cd-4d97-b49f-bb2095a5854a'
   
 connector:
   id: 'f4c54571-4f01-4ac5-8495-eae51748872e'
