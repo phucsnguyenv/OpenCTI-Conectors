@@ -25,6 +25,17 @@ class Talosip:
         )
         self.helper = OpenCTIConnectorHelper(config)
 
+        self.identity = self.helper.api.identity.create(
+            type="identiry",
+            name="Cisco Talos"
+        )
+        self.marker_definition = self.helper.api.marking_definition.create(
+            type="marking-definition",
+            name="Ipv4-blacklist",
+            definition_type="statement",
+            definition="Cisco"
+        )
+
     def get_interval(self):
         return int(self.amitt_interval) * 60 * 60 * 24
 
@@ -33,13 +44,13 @@ class Talosip:
         print("File downloaded. Processing data...")
         for ip in ip_lists:
             ip = ip.strip("\n")
-            print(ip)
-            indicator = self.helper.api.stix_indicator.create(
+            observable = self.helper.api.stix_observable.create(
                 type="ipv4-addr",
                 observable_value=ip,
-                markingDefinitions='TLP:WHITE',
                 description="from talos via OPENCTI",
-
+                createdByRef=self.identity,
+                createIndicator="True",
+                markingDefinitions=self.marker_definition
             )
         print(indicator)
 
