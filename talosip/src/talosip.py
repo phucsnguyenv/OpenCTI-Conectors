@@ -6,6 +6,7 @@ from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
 from stix2 import Indicator, IPv4Address, Bundle, ExternalReference, Report, TLP_WHITE
+from pycti.utils.constants import CustomProperties
 
 
 class Talosip:
@@ -28,10 +29,11 @@ class Talosip:
         self.identity = self.helper.api.identity.create(
             type="identity",
             name="Cisco Talos",
-            description="Talosintilligence  IP Blacklist"
+            description="Talosintilligence  IP Blacklist",
         )
-        self.tags = [{"tag_type": "Event",
-                      "value": "TalosIntelligence", "color": "#fc036b"}]
+        self.tags = [
+            {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"}
+        ]
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -41,17 +43,21 @@ class Talosip:
         stix_indicators = []
 
         while True:
-            black_list_file = os.path.dirname(
-                os.path.abspath(__file__))+"/ip_blacklist.txt"
+            black_list_file = (
+                os.path.dirname(os.path.abspath(__file__)) +
+                "/ip_blacklist.txt"
+            )
             if os.path.isfile(black_list_file):
                 self.helper.log_info(
-                    "[48] File IP blacklist existing, deleting file...")
+                    "[48] File IP blacklist existing, deleting file..."
+                )
                 # deleting file....
                 os.remove(black_list_file)
                 self.helper.log_info("[50] File deleted.")
             elif not os.path.isfile(black_list_file):
                 self.helper.log_info(
-                    "[54] File not exist or deleted. Downloading new file...")
+                    "[54] File not exist or deleted. Downloading new file..."
+                )
                 ip_blacklist = wget.download(
                     self.talosip_url, out="ip_blacklist.txt")
                 # processing message...
@@ -68,7 +74,7 @@ class Talosip:
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
-                    external_id="ip-blacklist"
+                    external_id="ip-blacklist",
                 )
                 self.helper.log_info("Creating report...")
                 _report = Report(
@@ -80,20 +86,21 @@ class Talosip:
                     created_by_ref=self.identity["stix_id_key"],
                     object_marking_refs=TLP_WHITE,
                     labels=["threat-report"],
+                    external_references=_report_external_reference,
                     object_refs=stix_indicators,
+                    custom_properties={CustomProperties.TAG_TYPE: self.tags}
                 )
                 stix_bundle.append(_report)
+                # sending bundle
                 self.helper.log_info("Sending bundle....")
                 sending_bundle = Bundle(objects=stix_bundle)
                 self.helper.send_stix2_bundle(
                     bundle=sending_bundle.serialize(), update=True
                 )
-                self.helper.log_info("Done.")
+                self.helper.log_info("STIX Bundle has been sent.")
                 break
             else:
-                raise ValueError(
-                    "[] Error unknown."
-                )
+                raise ValueError("[] Error unknown.")
 
     def _create_indicator(self, data):
         # create stix indicator
@@ -104,7 +111,8 @@ class Talosip:
             pattern="[" + _ip.type + ":value = '" + _ip.value + "']",
             labels="malicious-activity",
             created_by_ref=self.identity["stix_id_key"],
-            object_marking_refs=TLP_WHITE
+            object_marking_refs=TLP_WHITE,
+            custom_properties={CustomProperties.TAG_TYPE: self.tags},
         )
         return _indicator
 
@@ -126,13 +134,15 @@ class Talosip:
                     last_run = None
                     self.helper.log_info("[126] Connector has never run")
                 if last_run is None or (
-                    (timestamp - last_run) > ((int(self.talosip_interval) - 1)
-                                              * 60 * 60 * 24)
+                    (timestamp - last_run)
+                    > ((int(self.talosip_interval) - 1) * 60 * 60 * 24)
                 ):
                     self.helper.log_info("[131] Connector will run!")
                     self._process_file()
                     self.helper.log_info(
-                        "[134] Connector successfully run, storing last_run as "+str(timestamp))
+                        "[134] Connector successfully run, storing last_run as "
+                        + str(timestamp)
+                    )
                     self.helper.set_state({"last_run": timestamp})
                     self.helper.log_info(
                         "[137] Last_run stored, next run in: "
