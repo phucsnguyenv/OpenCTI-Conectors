@@ -1,9 +1,9 @@
 opencti:
   url: 'http://localhost'
-  token: 'df8635b1-39b5-41c2-8873-2f19b0e6ca8c'
+  token: 'ChangeMe'
   
 connector:
-  id: 'c673e0bd-454b-4bdc-87f1-6479d52fde9d'
+  id: 'ChangeMe'
   type: 'EXTERNAL_IMPORT'
   name: 'Talos IP blacklist'
   scope: 'ipv4-addr'
@@ -13,4 +13,4 @@ connector:
 talosip:
   max_tlp: 'TLP:AMBER'
   url: 'https://talosintelligence.com/documents/ip-blacklist'
-  interval: 7
+  interval: 7 #day
