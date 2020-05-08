@@ -58,6 +58,7 @@ class Talosip:
                 self.helper.log_info(
                     "[54] File not exist or deleted. Downloading new file..."
                 )
+                self.helper.log_info("Downloading file from {}".format(self.talosip_url))
                 ip_blacklist = wget.download(
                     self.talosip_url, out="ip_blacklist.txt")
                 # processing message...
@@ -157,7 +158,7 @@ class Talosip:
                         + str(round(new_interval / 60 / 60 / 24, 2))
                         + " days"
                     )
-                    time.sleep(60)
+                    time.sleep(600)
             except (KeyboardInterrupt, SystemExit):
                 self.helper.log_info("[151] Connector stop")
                 exit(0)
