@@ -24,6 +24,10 @@ class Talosip:
         self.talosip_url = get_config_variable(
             "TALOSIP_URL", ["talosip", "url"], config
         )
+        self.update_existing_data = get_config_variable(
+            "CONNECTOR_UPDATE_EXISTING_DATA", [
+                "connector", "update_existing_data"], config
+        )
         self.helper = OpenCTIConnectorHelper(config)
 
         self.identity = self.helper.api.identity.create(
@@ -58,7 +62,8 @@ class Talosip:
                 self.helper.log_info(
                     "[54] File not exist or deleted. Downloading new file..."
                 )
-                self.helper.log_info("Downloading file from {}".format(self.talosip_url))
+                self.helper.log_info(
+                    "Downloading file from {}".format(self.talosip_url))
                 ip_blacklist = wget.download(
                     self.talosip_url, out="ip_blacklist.txt")
                 # processing message...
@@ -96,7 +101,7 @@ class Talosip:
                 self.helper.log_info("Sending bundle....")
                 sending_bundle = Bundle(objects=stix_bundle)
                 self.helper.send_stix2_bundle(
-                    bundle=sending_bundle.serialize(), update=True
+                    bundle=sending_bundle.serialize(), update=self.update_existing_data
                 )
                 self.helper.log_info("STIX Bundle has been sent.")
                 break
