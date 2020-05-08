@@ -5,7 +5,7 @@ import wget
 from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
-from stix2 import Indicator, IPv4Address, Bundle, ExternalReference, Report, TLP_WHITE
+from stix2 import Indicator, IPv4Address, Bundle, ExternalReference, Report, TLP_WHITE, Identity
 from pycti.utils.constants import CustomProperties
 
 
@@ -30,13 +30,16 @@ class Talosip:
         )
         self.helper = OpenCTIConnectorHelper(config)
 
-        self.identity = self.helper.api.identity.create(
+        self.helper.log_info("Creating an Identity...")
+        self.identity = Identity(
             type="identity",
             name="Cisco Talos",
             description="Talosintilligence  IP Blacklist",
+            identity_class="organization"
         )
         self.tags = [
-            {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"}
+            {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"},
+            {"tag_type": "Event", "value": "ipv4-blacklist", "color": "#1c100b"}
         ]
 
     def get_interval(self):
@@ -45,7 +48,7 @@ class Talosip:
     def _process_file(self):
         stix_bundle = []
         stix_indicators = []
-
+        stix_bundle.append(self.identity)
         while True:
             black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) +
@@ -89,7 +92,7 @@ class Talosip:
                     type="report",
                     description="This report represents the blacklist provided by Cisco Talos",
                     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    created_by_ref=self.identity["stix_id_key"],
+                    created_by_ref=self.identity,
                     object_marking_refs=TLP_WHITE,
                     labels=["threat-report"],
                     external_references=_report_external_reference,
@@ -116,7 +119,7 @@ class Talosip:
             description="from Talos IP blacklist via Opencti",
             pattern="[" + _ip.type + ":value = '" + _ip.value + "']",
             labels="malicious-activity",
-            created_by_ref=self.identity["stix_id_key"],
+            created_by_ref=self.identity,
             object_marking_refs=TLP_WHITE,
             custom_properties={CustomProperties.TAG_TYPE: self.tags},
         )
@@ -163,7 +166,7 @@ class Talosip:
                         + str(round(new_interval / 60 / 60 / 24, 2))
                         + " days"
                     )
-                    time.sleep(600)
+                    time.sleep(3600)
             except (KeyboardInterrupt, SystemExit):
                 self.helper.log_info("[151] Connector stop")
                 exit(0)
