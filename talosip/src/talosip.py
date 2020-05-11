@@ -144,7 +144,7 @@ class Talosip:
                     self.helper.log_info("[126] Connector has never run")
                 if last_run is None or (
                     (timestamp - last_run)
-                    > ((int(self.talosip_interval) - 1) * 60 * 60 * 24)
+                    > ((int(self.talosip_interval)) * 60 * 60 * 24)
                 ):
                     self.helper.log_info("[131] Connector will run!")
                     self._process_file()
