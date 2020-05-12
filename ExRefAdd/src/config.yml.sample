@@ -1,0 +1,16 @@
+opencti:
+  url: 'http://localhost'
+  token: 'ChangeMe'
+  
+connector:
+  id: 'ChangeMe'
+  type: 'EXTERNAL_IMPORT'
+  name: 'Talos IP blacklist'
+  scope: ipv4-addr,domain
+  confidence_level: 3
+  log_level: 'info'
+  update_existing_data: true
+  
+exrefadd:
+  max_tlp: 'TLP:AMBER'
+  interval: 1 #day
