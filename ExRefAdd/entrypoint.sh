@@ -2,4 +2,4 @@
 
 cd /opt/opencti-connector-exrefadd
 
-python3 exrefadd.py
+python3 ExRefAdd.py

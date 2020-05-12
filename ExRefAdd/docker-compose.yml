@@ -3,9 +3,9 @@ services:
     connector-exrefadd:
         image: opencti/connector-dev-exrefadd:rolling
         volumes: 
-          - data/src:/opt/opencti-connector-exrefadd/data/files/src
-          - data/dest:/opt/opencti-connector-exrefadd/data/files/dest
-          - data/archive:/opt/opencti-connector-exrefadd/data/archive
+          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/src:/opt/opencti-connector-exrefadd/data/files/src
+          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/dest:/opt/opencti-connector-exrefadd/data/files/dest
+          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/archive:/opt/opencti-connector-exrefadd/data/archive
         environment:
           - OPENCTI_URL=http://opencti:8080
           - OPENCTI_TOKEN=ChangeMe

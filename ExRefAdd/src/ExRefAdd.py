@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import time
+import csv
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
 from stix2 import Bundle, Report, TLP_WHITE
@@ -24,8 +25,8 @@ class ExRefAdd():
         )
         self._data_path = os.path.dirname(os.path.abspath(__file__))+"/data"
         self.marking_definition = self.helper.api.marking_definition.create(
-            "definition_type"=tlp,
-            "definition"=white
+            definition_type="tlp",
+            definition="white"
         )
         self.filename = ''
 
@@ -72,7 +73,6 @@ class ExRefAdd():
         # Creating report
         self.helper.log_info("Generating report...")
         _report = Report(
-            id=_report_uuid,
             name="Import data locally from file {}".format(self.filename),
             type="report",
             description=report[1],
@@ -88,7 +88,7 @@ class ExRefAdd():
         )
         self.helper.log_info("Bundle sent.")
 
-    def.start(self):
+    def start(self):
         while True:
             self._open_files()
             time.sleep(6*3600)
