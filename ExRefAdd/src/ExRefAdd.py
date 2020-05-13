@@ -75,8 +75,8 @@ class ExRefAdd():
                     type=row[1],
                     description=row[2],
                     createIndicator=True,
-                    markingDefinitions=self.marking_definition["id"]
-
+                    markingDefinitions=self.marking_definition["id"],
+                    createdByRef=self.identity["id"]
                 )
                 observable_id_list = _observable["stix_id_key"]
 
