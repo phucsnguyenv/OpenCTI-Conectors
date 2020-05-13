@@ -10,7 +10,7 @@ from stix2 import Bundle, Report, TLP_WHITE, Identity, Indicator
 from pycti.utils.constants import CustomProperties
 
 
-class ExRefAdd:
+class InternalImport:
     def __init__(self):
         # get config variable
         config_file_path = os.path.dirname(
@@ -133,8 +133,8 @@ class ExRefAdd:
 
 if __name__ == "__main__":
     try:
-        exrefaddInstance = ExRefAdd()
-        exrefaddInstance.start()
+        importInstance = InternalImport()
+        importInstance.start()
     except Exception as e:
         print(e)
         time.sleep(5)

@@ -1,11 +1,9 @@
 version: '3'
 services: 
-    connector-exrefadd:
-        image: opencti/connector-dev-exrefadd:rolling
+    connector-internal-import:
+        image: opencti/connector-dev-internal-import:rolling
         volumes: 
-          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/src:/opt/opencti-connector-exrefadd/data/files/src
-          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/dest:/opt/opencti-connector-exrefadd/data/files/dest
-          - /home/phucnv/opencti/docker/connectors_dev/ExRefAdd/testdata/archive:/opt/opencti-connector-exrefadd/data/archive
+          - ChangeMe:/opt/opencti-connector-internal-import/data/files/src
         environment:
           - OPENCTI_URL=http://opencti:8080
           - OPENCTI_TOKEN=ChangeMe
