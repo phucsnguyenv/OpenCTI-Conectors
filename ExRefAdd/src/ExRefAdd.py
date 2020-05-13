@@ -4,9 +4,10 @@ import json
 import shutil
 import time
 import csv
+from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
-from stix2 import Bundle, Report, TLP_WHITE
+from stix2 import Bundle, Report, TLP_WHITE, Identity, Indicator
 from pycti.utils.constants import CustomProperties
 
 
@@ -29,13 +30,13 @@ class ExRefAdd():
             definition_type="tlp",
             definition="white"
         )
-        self.identity = self.helper.api.identity.create(
+        self.identity = Identity(
             name="Internal Collector",
-            Description="Internal",
-            markingDefinitions=self.marking_definition["id"],
-            identity_class="organization"
+            identity_class="individual",
+            description="Import internal data from CSV file"
         )
         self.tag1 = self.helper.api.tag.create(
+            tag_type="Event",
             value="internal-import",
             color="#2e99db"
         )
@@ -60,13 +61,31 @@ class ExRefAdd():
         else:
             self.helper.log_info("No files. Sleeping...")
 
+    def _create_indicator(self, row):
+        _dict = {
+            "ipv4": "ipv4-addr",
+            "url": "url"
+        }
+        indicator_type = _dict[row[1]]
+        indicator_value = row[0]
+        _indicator = Indicator(
+            name=indicator_value,
+            description="IOC import from "+self.filename,
+            pattern="["+indicator_type+":value = '"+indicator_value+"']",
+            labels="malicious-activity",
+            created_by_ref=self.identity,
+            object_marking_refs=TLP_WHITE,
+            custom_properties={CustomProperties.TAG_TYPE: self.tag1}
+        )
+        return _indicator
+
+
     def _process_message(self, data):
         _isvalid = 0
-        observable_id_list = []
-        observable_list = []
+        indicator_id_list = []
         bundle = []
         """doing things with data here"""
-        self.helper.log_info("Creating Observable data")
+        self.helper.log_info("Creating Indicators data")
         for row in data:
             if(row[0] == "_report"):
                 report = row
@@ -80,37 +99,36 @@ class ExRefAdd():
                     source_name="Threatcrowd "+row[0],
                     url="https://www.threatcrowd.org/pivot.php?data="+row[0]
                 )
-                ex_ref.append()
-                _observable = self.helper.api.stix_observable.create(
-                    name=row[0],
-                    observable_value=row[0],
-                    type=row[1],
-                    description=row[2],
-                    createIndicator=True,
-                    markingDefinitions=self.marking_definition["id"],
-                    createdByRef=self.identity["id"],
-                    custom_properties={
-                        CustomProperties.TAG_TYPE: self.tag1}
-                )
-                observable_id_list = _observable["stix_id_key"]
-
+                ex_ref.append(ex_threatcrow["stix_id_key"])
+                ex_ref.append(ex_virustotal["stix_id_key"])
+                
+                #create indicator
+                self.helper.log_info("Creating Indicator...")
+                _indicator = self._create_indicator(row)
+                bundle.append(_indicator)
+                indicator_id_list.append(_indicator["id"])
+        print(indicator_id_list)
         # Creating report
         self.helper.log_info("Generating report...")
         _report = Report(
             name="Import data locally from file {}".format(self.filename),
             type="report",
+            published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             description=report[1],
             object_marking_refs=TLP_WHITE,
+            created_by_ref=self.identity,
             labels=["threat-report"],
-            object_refs=observable_id_list
+            object_refs=indicator_id_list
         )
         bundle.append(_report)
         self.helper.log_info("Sending bundle...")
+        print(bundle)
         sending_bundle = Bundle(objects=bundle)
         self.helper.send_stix2_bundle(
             bundle=sending_bundle.serialize(), update=self.update_existing_data
         )
         self.helper.log_info("Bundle sent.")
+        self.helper.log_info("Sleeping...")
 
     def start(self):
         while True:
