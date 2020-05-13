@@ -28,6 +28,15 @@ class ExRefAdd():
             definition_type="tlp",
             definition="white"
         )
+        self.identity = self.helper.api.identity.create(
+            name="Internal Collector",
+            Description="Internal",
+            markingDefinitions=self.marking_definition["id"]
+        )
+        self.tag1 = self.helper.api.tag.create(
+            value="internal-import",
+            color="#2e99db"
+        )
         self.filename = ''
 
     def _read_file(self, data):
@@ -66,7 +75,8 @@ class ExRefAdd():
                     type=row[1],
                     description=row[2],
                     createIndicator=True,
-                    markingDefinitions=self.marking_definition["stix_id_key"]
+                    markingDefinitions=self.marking_definition["id"]
+
                 )
                 observable_id_list = _observable["stix_id_key"]
 
