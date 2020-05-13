@@ -7,6 +7,7 @@ import csv
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
 from stix2 import Bundle, Report, TLP_WHITE
+from pycti.utils.constants import CustomProperties
 
 
 class ExRefAdd():
@@ -31,7 +32,8 @@ class ExRefAdd():
         self.identity = self.helper.api.identity.create(
             name="Internal Collector",
             Description="Internal",
-            markingDefinitions=self.marking_definition["id"]
+            markingDefinitions=self.marking_definition["id"],
+            identity_class="organization"
         )
         self.tag1 = self.helper.api.tag.create(
             value="internal-import",
@@ -69,6 +71,16 @@ class ExRefAdd():
             if(row[0] == "_report"):
                 report = row
             else:
+                ex_ref = []
+                ex_virustotal = self.helper.api.external_reference.create(
+                    source_name="Virustotal "+row[0],
+                    url="https://www.virustotal.com/gui/seach/"+row[0]
+                )
+                ex_threatcrow = self.helper.api.external_reference.create(
+                    source_name="Threatcrowd "+row[0],
+                    url="https://www.threatcrowd.org/pivot.php?data="+row[0]
+                )
+                ex_ref.append()
                 _observable = self.helper.api.stix_observable.create(
                     name=row[0],
                     observable_value=row[0],
@@ -76,7 +88,9 @@ class ExRefAdd():
                     description=row[2],
                     createIndicator=True,
                     markingDefinitions=self.marking_definition["id"],
-                    createdByRef=self.identity["id"]
+                    createdByRef=self.identity["id"],
+                    custom_properties={
+                        CustomProperties.TAG_TYPE: self.tag1}
                 )
                 observable_id_list = _observable["stix_id_key"]
 
