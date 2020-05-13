@@ -26,20 +26,13 @@ class ExRefAdd():
                                      "update_existing_data"], config
         )
         self._data_path = os.path.dirname(os.path.abspath(__file__))+"/data"
-        self.marking_definition = self.helper.api.marking_definition.create(
-            definition_type="tlp",
-            definition="white"
-        )
         self.identity = Identity(
+            type="identity",
             name="Internal Collector",
             identity_class="individual",
             description="Import internal data from CSV file"
         )
-        self.tag1 = self.helper.api.tag.create(
-            tag_type="Event",
-            value="internal-import",
-            color="#2e99db"
-        )
+        self.tag=[{"tag_type":"Event","value":"internal-imported","color":"#2e99db"}]
         self.filename = ''
 
     def _read_file(self, data):
@@ -69,14 +62,13 @@ class ExRefAdd():
         indicator_type = _dict[row[1]]
         indicator_value = row[0]
         _indicator = Indicator(
-            type="indicator"
             name=indicator_value,
             description="IOC import from "+self.filename,
             pattern="["+indicator_type+":value = '"+indicator_value+"']",
             labels="malicious-activity",
             created_by_ref=self.identity,
             object_marking_refs=TLP_WHITE,
-            custom_properties={CustomProperties.TAG_TYPE: self.tag1}
+            custom_properties={CustomProperties.TAG_TYPE: self.tag}
         )
         return _indicator
 
@@ -90,7 +82,7 @@ class ExRefAdd():
             if(row[0] == "_report"):
                 report = row
             else:
-                ex_ref = []
+
                 ex_virustotal = self.helper.api.external_reference.create(
                     source_name="Virustotal "+row[0],
                     url="https://www.virustotal.com/gui/seach/"+row[0]
@@ -99,8 +91,6 @@ class ExRefAdd():
                     source_name="Threatcrowd "+row[0],
                     url="https://www.threatcrowd.org/pivot.php?data="+row[0]
                 )
-                ex_ref.append(ex_threatcrow["stix_id_key"])
-                ex_ref.append(ex_virustotal["stix_id_key"])
 
                 # create indicator
                 self.helper.log_info("Creating Indicator...")
@@ -121,18 +111,23 @@ class ExRefAdd():
         )
         bundle.append(_report)
         self.helper.log_info("Sending bundle...")
-        print(bundle)
         sending_bundle = Bundle(objects=bundle)
+        self.helper.log_info(sending_bundle)
         self.helper.send_stix2_bundle(
             bundle=sending_bundle.serialize(), update=self.update_existing_data
         )
         self.helper.log_info("Bundle sent.")
+        self.helper.log_info("Archiving file...")
+        # archiving files
+        _src = self._data_path+"/files/"+self.filename
+        _dest = self._data_path+'/archive'
+        shutil.move(_src, _dest)
         self.helper.log_info("Sleeping...")
 
     def start(self):
         while True:
             self._open_files()
-            time.sleep(6*3600)
+            time.sleep(120)
 
 
 if __name__ == "__main__":
@@ -141,5 +136,5 @@ if __name__ == "__main__":
         exrefaddInstance.start()
     except Exception as e:
         print(e)
-        time.sleep(10)
+        time.sleep(5)
         exit(0)
