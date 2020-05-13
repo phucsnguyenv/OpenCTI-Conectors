@@ -69,6 +69,7 @@ class ExRefAdd():
         indicator_type = _dict[row[1]]
         indicator_value = row[0]
         _indicator = Indicator(
+            type="indicator"
             name=indicator_value,
             description="IOC import from "+self.filename,
             pattern="["+indicator_type+":value = '"+indicator_value+"']",
@@ -79,11 +80,10 @@ class ExRefAdd():
         )
         return _indicator
 
-
     def _process_message(self, data):
-        _isvalid = 0
         indicator_id_list = []
         bundle = []
+        bundle.append(self.identity)
         """doing things with data here"""
         self.helper.log_info("Creating Indicators data")
         for row in data:
@@ -101,13 +101,12 @@ class ExRefAdd():
                 )
                 ex_ref.append(ex_threatcrow["stix_id_key"])
                 ex_ref.append(ex_virustotal["stix_id_key"])
-                
-                #create indicator
+
+                # create indicator
                 self.helper.log_info("Creating Indicator...")
                 _indicator = self._create_indicator(row)
                 bundle.append(_indicator)
                 indicator_id_list.append(_indicator["id"])
-        print(indicator_id_list)
         # Creating report
         self.helper.log_info("Generating report...")
         _report = Report(
