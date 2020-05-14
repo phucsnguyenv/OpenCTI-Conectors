@@ -27,15 +27,20 @@ class InternalImport:
                                      "update_existing_data"], config
         )
         self._data_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
-        self.identity = Identity(
-            type="identity",
+        self.identity = self.helper.api.identity.create(
             name="Internal Collector",
-            identity_class="individual",
-            description="Import internal data from CSV file",
+            type="User",
+            description="Importing internal data from CSV file"
         )
-        self.tag = [
-            {"tag_type": "Event", "value": "internal-imported", "color": "#2e99db"}
-        ]
+        self.markingDefinitions = self.helper.api.marking_definition.create(
+            definition_type="tlp",
+            definition="white"
+        )
+        self.tag = self.helper.api.tag.create(
+            tag_type="Event",
+            value="internal-importer",
+            color="#2e99db"
+        )
         self.filename = ""
 
     def _read_file(self, data):
@@ -57,46 +62,64 @@ class InternalImport:
         else:
             self.helper.log_info("No files. Sleeping...")
 
-    def _create_indicator(self, row):
-        _dict = {"ipv4": "ipv4-addr", "url": "url"}
-        indicator_type = _dict[row[1]]
-        indicator_value = row[0]
-        _indicator = Indicator(
-            name=indicator_value,
-            description="IOC import from " + self.filename,
-            pattern="[" + indicator_type +
-            ":value = '" + indicator_value + "']",
-            labels="malicious-activity",
-            created_by_ref=self.identity,
-            object_marking_refs=TLP_WHITE,
-            custom_properties={CustomProperties.TAG_TYPE: self.tag},
-        )
-        return _indicator
+    def _get_type(self, data):
+        _dict = {
+            "md5": "File-MD5",
+            "ip": "IPv4-Addr",
+            "url": "URL",
+            "sha1": "File-SHA1",
+            "sha256": "File-SHA256"
+        }
 
     def _process_message(self, data):
         indicator_id_list = []
         bundle = []
-        bundle.append(self.identity)
         """doing things with data here"""
         self.helper.log_info("Creating Indicators data")
         for row in data:
             if row[0] == "_report":
                 report = row
             else:
+                # creating observable
+                _observable_type = self._get_type(row[1])
+                self.helper.log_info("Creating Observale...")
+                _observable = self.helper.api.stix_observable.create(
+                    type=_observable_type,
+                    observable_value=row[0],
+                    createByRef=self.identity["id"]
+                )
 
-                self.helper.api.external_reference.create(
+                # create external references
+                virus_ref = self.helper.api.external_reference.create(
                     source_name="Virustotal " + row[0],
                     url="https://www.virustotal.com/gui/seach/" + row[0],
                 )
-                self.helper.api.external_reference.create(
+                thre_ref = self.helper.api.external_reference.create(
                     source_name="Threatcrowd " + row[0],
                     url="https://www.threatcrowd.org/pivot.php?data=" + row[0],
                 )
-
+                # attach external references to observable
+                self.helper.api.stix_entity.add_external_reference(
+                    id=_observable["id"],
+                    external_reference_id=virus_ref["id"]
+                )
+                self.helper.api.stix_entity.add_external_reference(
+                    id=_observable["id"],
+                    external_reference_id=thre_ref["id"]
+                )
+                # adding tag
+                self.helper.api.stix_entity.add_tag(
+                    id=_observable["id"],
+                    tag_vt=self.tag["id"]
+                )
                 # create indicator
-                self.helper.log_info("Creating Indicator...")
-                _indicator = self._create_indicator(row)
-                bundle.append(_indicator)
+                _indicator = self.helper.api.indicator.create(
+                    name=row[0],
+                    pattern_type="stix",
+                    main_observable_type=_observable_type,
+                    indicator_pattern="[" +
+                    _observable_type+":value='"+row[0]+"']"
+                )
                 indicator_id_list.append(_indicator["id"])
         # Creating report
         self.helper.log_info("Generating report...")
