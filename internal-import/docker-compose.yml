@@ -3,7 +3,7 @@ services:
     connector-internal-import:
         image: opencti/connector-dev-internal-import:rolling
         volumes: 
-          - ChangeMe:/opt/opencti-connector-internal-import/data/files/src
+          - ChangeMe:/opt/opencti-connector-internal-import/data/
         environment:
           - OPENCTI_URL=http://opencti:8080
           - OPENCTI_TOKEN=ChangeMe

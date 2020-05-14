@@ -1,5 +1,5 @@
 #!/bin/sh
 
-cd /opt/opencti-connector-exrefadd
+cd /opt/opencti-connector-internal-import
 
 python3 internal-import.py
