@@ -9,5 +9,6 @@ Check out my code on github and let me know if there are any problems.
 ## Changed logs
 ### v1.1.0
 - Adding `internal-import` connector
+
 ### v1.0.0
 - Init release `talosip` connector - the TalosIntelligence IPv4 blacklist importing
