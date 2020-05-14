@@ -6,7 +6,6 @@ import csv
 from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
-from stix2 import Bundle, Report, TLP_WHITE, Identity, Indicator
 from pycti.utils.constants import CustomProperties
 
 
@@ -30,20 +29,14 @@ class InternalImport:
         self.identity = self.helper.api.identity.create(
             name="Internal Collector",
             type="User",
-            description="Importing internal data from CSV file"
+            description="Importing internal data from CSV file",
         )
         self.markingDefinitions = self.helper.api.marking_definition.create(
-            definition_type="tlp",
-            definition="TLP:WHITE"
+            definition_type="tlp", definition="TLP:WHITE"
         )
         self.tag = self.helper.api.tag.create(
-            tag_type="Internal-Import",
-            value="internal-importer",
-            color="#2e99db"
+            tag_type="Internal-Import", value="internal-importer", color="#2e99db"
         )
-        self.stix_tag = [
-            {"tag_type":"Internal-Import", "value":"internal-importer", "color":"#2e99db"}
-        ]
         self.filename = ""
 
     def _read_file(self, data):
@@ -72,28 +65,29 @@ class InternalImport:
             "url": "URL",
             "sha1": "File-SHA1",
             "sha256": "File-SHA256",
-            "domain": "Domain"
+            "domain": "Domain",
         }
         _type = _dict.get(data)
         return _type
 
     def _process_message(self, data):
         """doing things with data here"""
-        list_observale = []
+        created_observable_id_list = []
+        created_indicator_id_list = []
         self.helper.log_info("Creating Indicators data")
         for row in data:
             if row[0] == "_report":
                 _report = row
             else:
                 # creating observable
-                _observable_type = self._get_type(row[1])
+                observable_type = self._get_type(row[1])
                 self.helper.log_info("Creating Observale...")
-                _observable = self.helper.api.stix_observable.create(
-                    type=_observable_type,
+                created_observable = self.helper.api.stix_observable.create(
+                    type=observable_type,
                     observable_value=row[0],
                     createByRef=self.identity["id"],
                     markingDefinitions=self.markingDefinitions["id"],
-                    createIndicator=True
+                    createIndicator=True,
                 )
                 # create external references
                 virus_ref = self.helper.api.external_reference.create(
@@ -106,32 +100,43 @@ class InternalImport:
                 )
                 # attach external references to observable
                 self.helper.api.stix_entity.add_external_reference(
-                    id=_observable["id"],
-                    external_reference_id=virus_ref["id"]
+                    id=created_observable["id"], external_reference_id=virus_ref["id"]
                 )
                 self.helper.api.stix_entity.add_external_reference(
-                    id=_observable["id"],
-                    external_reference_id=thre_ref["id"]
+                    id=created_observable["id"], external_reference_id=thre_ref["id"]
                 )
                 # adding tag
                 self.helper.api.stix_entity.add_tag(
-                    id=_observable["id"],
-                    tag_id=self.tag["id"]
+                    id=created_observable["id"], tag_id=self.tag["id"]
                 )
-                list_observale.append(_observable["id"])
+                # this should be stix_id_key
+                created_observable_id_list.append(
+                    created_observable["stix_id_key"])
+                created_indicator_id_list.append(
+                    created_observable["indicatorsIds"])
         # Creating report
         self.helper.log_info("Generating report...")
-        report = self.helper.api.report.create(
-            report_class= "Internal Report",
+        created_report = self.helper.api.report.create(
+            report_class="Internal Report",
             description=_report[1],
-            name="Import data from file: {}".format(self.filename),
+            name="Import data from file {}".format(self.filename),
             published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             createByRef=self.identity["id"],
         )
-        for obser_id in list_observale:
+        # Adding observale to report
+        for create_observable_stix_id in created_observable_id_list:
             self.helper.api.report.contains_stix_observable(
-                id=report["id"],
-                stix_observable_id=obser_id
+                id=created_report["id"], stix_observable_id=created_observable_stix_id
+            )
+        # Getting created_indicator stix id key
+        for created_indicator_id in created_indicator_id_list:
+            created_indicator_stix = self.helper.api.indicator.read(
+                id=created_indicator_id
+            )
+            created_indicator_stix_id = created_indicator_stix["stix_id_key"]
+            # Adding indicator to report
+            self.helper.api.report.contains_stix_entity(
+                id=created_report["id"], entity_id=created_indicator_stix_id
             )
 
         self.helper.log_info("Archiving file...")
@@ -144,7 +149,7 @@ class InternalImport:
     def start(self):
         while True:
             self._open_files()
-            time.sleep(60)
+            time.sleep(120)
 
 
 if __name__ == "__main__":
@@ -153,5 +158,5 @@ if __name__ == "__main__":
         importInstance.start()
     except Exception as e:
         print(e)
-        time.sleep(2)
+        time.sleep(5)
         exit(0)
