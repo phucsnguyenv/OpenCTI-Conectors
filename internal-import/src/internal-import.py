@@ -95,7 +95,6 @@ class InternalImport:
                     markingDefinitions=self.markingDefinitions["id"],
                     createIndicator=True
                 )
-
                 # create external references
                 virus_ref = self.helper.api.external_reference.create(
                     source_name="Virustotal " + row[0],
@@ -120,27 +119,6 @@ class InternalImport:
                     tag_id=self.tag["id"]
                 )
                 list_observale.append(_observable["id"])
-                # create indicator
-                # _indicator = self.helper.api.indicator.create(
-                #     name=row[0],
-                #     pattern_type="stix",
-                #     main_observable_type=_observable_type,
-                #     indicator_pattern="[" +
-                #     _observable_type+":value='"+row[0]+"']",
-                #     createByRef=self.identity["id"],
-                #     markingDefinitions=self.markingDefinitions["id"]
-                # )
-                # stix_indicator = Indicator(
-                #     name=row[0],
-                #     labels="malware-activity",
-                #     description="IOC imported from "+self.filename,
-                #     pattern="[" +
-                #     _observable_type+":value='"+row[0]+"']",
-                #     created_by_ref=self.identity["stix_id_key"],
-                #     object_marking_refs=self.markingDefinitions["stix_id_key"],
-                #     custom_properties={CustomProperties.TAG_TYPE: self.stix_tag}
-                # )
-                # bundle.append(stix_indicator)
         # Creating report
         self.helper.log_info("Generating report...")
         report = self.helper.api.report.create(
@@ -155,22 +133,7 @@ class InternalImport:
                 id=report["id"],
                 stix_observable_id=obser_id
             )
-        # stix_report = Report(
-        #     name="Import data locally from file {}".format(self.filename),
-        #     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        #     type="report",
-        #     description=report[1],
-        #     object_marking_refs=self.markingDefinitions["stix_id_key"],
-        #     created_by_ref=self.identity["stix_id_key"],
-        #     labels=["threat-report"],
-        #     object_refs=indicator_id_list
-        # )
-        # bundle.append(stix_report)
-        # sending_stix_bundle = Bundle(objects=bundle)
-        # self.helper.send_stix2_bundle(
-        #     bundle=sending_stix_bundle.serialize(), update=self.update_existing_data
-        # )
-        self.helper.log_info("Bundle sent.")
+
         self.helper.log_info("Archiving file...")
         # archiving files
         _src = self._data_path + "/files/" + self.filename
