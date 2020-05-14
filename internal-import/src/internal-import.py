@@ -67,7 +67,7 @@ class InternalImport:
             "sha256": "File-SHA256",
             "domain": "Domain",
         }
-        _type = _dict.get(data)
+        _type = _dict.get(data.lower())
         return _type
 
     def _process_message(self, data):
