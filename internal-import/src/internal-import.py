@@ -34,13 +34,16 @@ class InternalImport:
         )
         self.markingDefinitions = self.helper.api.marking_definition.create(
             definition_type="tlp",
-            definition="white"
+            definition="TLP:WHITE"
         )
         self.tag = self.helper.api.tag.create(
-            tag_type="Event",
+            tag_type="Internal-Import",
             value="internal-importer",
             color="#2e99db"
         )
+        self.stix_tag = [
+            {"tag_type":"Internal-Import", "value":"internal-importer", "color":"#2e99db"}
+        ]
         self.filename = ""
 
     def _read_file(self, data):
@@ -68,17 +71,19 @@ class InternalImport:
             "ip": "IPv4-Addr",
             "url": "URL",
             "sha1": "File-SHA1",
-            "sha256": "File-SHA256"
+            "sha256": "File-SHA256",
+            "domain": "Domain"
         }
+        _type = _dict.get(data)
+        return _type
 
     def _process_message(self, data):
-        indicator_id_list = []
-        bundle = []
         """doing things with data here"""
+        list_observale = []
         self.helper.log_info("Creating Indicators data")
         for row in data:
             if row[0] == "_report":
-                report = row
+                _report = row
             else:
                 # creating observable
                 _observable_type = self._get_type(row[1])
@@ -86,13 +91,15 @@ class InternalImport:
                 _observable = self.helper.api.stix_observable.create(
                     type=_observable_type,
                     observable_value=row[0],
-                    createByRef=self.identity["id"]
+                    createByRef=self.identity["id"],
+                    markingDefinitions=self.markingDefinitions["id"],
+                    createIndicator=True
                 )
 
                 # create external references
                 virus_ref = self.helper.api.external_reference.create(
                     source_name="Virustotal " + row[0],
-                    url="https://www.virustotal.com/gui/seach/" + row[0],
+                    url="https://www.virustotal.com/gui/search/" + row[0],
                 )
                 thre_ref = self.helper.api.external_reference.create(
                     source_name="Threatcrowd " + row[0],
@@ -110,36 +117,59 @@ class InternalImport:
                 # adding tag
                 self.helper.api.stix_entity.add_tag(
                     id=_observable["id"],
-                    tag_vt=self.tag["id"]
+                    tag_id=self.tag["id"]
                 )
+                list_observale.append(_observable["id"])
                 # create indicator
-                _indicator = self.helper.api.indicator.create(
-                    name=row[0],
-                    pattern_type="stix",
-                    main_observable_type=_observable_type,
-                    indicator_pattern="[" +
-                    _observable_type+":value='"+row[0]+"']"
-                )
-                indicator_id_list.append(_indicator["id"])
+                # _indicator = self.helper.api.indicator.create(
+                #     name=row[0],
+                #     pattern_type="stix",
+                #     main_observable_type=_observable_type,
+                #     indicator_pattern="[" +
+                #     _observable_type+":value='"+row[0]+"']",
+                #     createByRef=self.identity["id"],
+                #     markingDefinitions=self.markingDefinitions["id"]
+                # )
+                # stix_indicator = Indicator(
+                #     name=row[0],
+                #     labels="malware-activity",
+                #     description="IOC imported from "+self.filename,
+                #     pattern="[" +
+                #     _observable_type+":value='"+row[0]+"']",
+                #     created_by_ref=self.identity["stix_id_key"],
+                #     object_marking_refs=self.markingDefinitions["stix_id_key"],
+                #     custom_properties={CustomProperties.TAG_TYPE: self.stix_tag}
+                # )
+                # bundle.append(stix_indicator)
         # Creating report
         self.helper.log_info("Generating report...")
-        _report = Report(
-            name="Import data locally from file {}".format(self.filename),
-            type="report",
+        report = self.helper.api.report.create(
+            report_class= "Internal Report",
+            description=_report[1],
+            name="Import data from file: {}".format(self.filename),
             published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            description=report[1],
-            object_marking_refs=TLP_WHITE,
-            created_by_ref=self.identity,
-            labels=["threat-report"],
-            object_refs=indicator_id_list,
+            createByRef=self.identity["id"],
         )
-        bundle.append(_report)
-        self.helper.log_info("Sending bundle...")
-        sending_bundle = Bundle(objects=bundle)
-        self.helper.log_info(sending_bundle)
-        self.helper.send_stix2_bundle(
-            bundle=sending_bundle.serialize(), update=self.update_existing_data
-        )
+        for obser_id in list_observale:
+            self.helper.api.report.contains_stix_observable(
+                id=report["id"],
+                stix_observable_id=obser_id
+            )
+        # stix_report = Report(
+        #     name="Import data locally from file {}".format(self.filename),
+        #     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        #     type="report",
+        #     description=report[1],
+        #     object_marking_refs=self.markingDefinitions["stix_id_key"],
+        #     created_by_ref=self.identity["stix_id_key"],
+        #     labels=["threat-report"],
+        #     object_refs=indicator_id_list
+        # )
+        # bundle.append(stix_report)
+        # sending_stix_bundle = Bundle(objects=bundle)
+        # self.helper.send_stix2_bundle(
+        #     bundle=sending_stix_bundle.serialize(), update=self.update_existing_data
+        # )
         self.helper.log_info("Bundle sent.")
         self.helper.log_info("Archiving file...")
         # archiving files
@@ -151,7 +181,7 @@ class InternalImport:
     def start(self):
         while True:
             self._open_files()
-            time.sleep(120)
+            time.sleep(60)
 
 
 if __name__ == "__main__":
@@ -160,5 +190,5 @@ if __name__ == "__main__":
         importInstance.start()
     except Exception as e:
         print(e)
-        time.sleep(5)
+        time.sleep(2)
         exit(0)
