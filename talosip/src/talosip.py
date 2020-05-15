@@ -45,6 +45,14 @@ class Talosip:
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
 
+    def _create_observable(self, ip):
+        # creating observable
+        created_observable = self.helper.api.stix_observable.create(
+            type="IPv4-Addr"
+            observable_value=ip
+        )
+        
+
     def _process_file(self):
         stix_bundle = []
         stix_indicators = []
@@ -76,6 +84,7 @@ class Talosip:
                 for ip in ip_lists:
                     ip = ip.strip("\n")
                     _indicator = self._create_indicator(ip)
+                    self._create_observable(ip)
                     stix_indicators.append(_indicator["id"])
                     stix_bundle.append(_indicator)
                 # create a report
