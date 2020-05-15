@@ -5,14 +5,21 @@ import wget
 from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
-from stix2 import Indicator, IPv4Address, Bundle, ExternalReference, Report, TLP_WHITE, Identity
+from stix2 import (
+    Indicator,
+    IPv4Address,
+    Bundle,
+    ExternalReference,
+    Report,
+    TLP_WHITE,
+    Identity,
+)
 from pycti.utils.constants import CustomProperties
 
 
 class Talosip:
     def __init__(self):
-        config_file_path = os.path.dirname(
-            os.path.abspath(__file__)) + "/config.yml"
+        config_file_path = os.path.dirname(os.path.abspath(__file__)) + "/config.yml"
         config = (
             yaml.load(open(config_file_path), Loader=yaml.FullLoader)
             if os.path.isfile(config_file_path)
@@ -25,8 +32,9 @@ class Talosip:
             "TALOSIP_URL", ["talosip", "url"], config
         )
         self.update_existing_data = get_config_variable(
-            "CONNECTOR_UPDATE_EXISTING_DATA", [
-                "connector", "update_existing_data"], config
+            "CONNECTOR_UPDATE_EXISTING_DATA",
+            ["connector", "update_existing_data"],
+            config,
         )
         self.helper = OpenCTIConnectorHelper(config)
 
@@ -35,12 +43,24 @@ class Talosip:
             type="identity",
             name="Cisco Talos",
             description="Talosintilligence  IP Blacklist",
-            identity_class="organization"
+            identity_class="organization",
         )
         self.tags = [
             {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"},
-            {"tag_type": "Event", "value": "ipv4-blacklist", "color": "#1c100b"}
+            {"tag_type": "Event", "value": "ipv4-blacklist", "color": "#1c100b"},
         ]
+        # get tag
+        self.talos_tag = self.helper.api.tag.create(
+            tag_type="Event", value="TalosIntelligence", color="#fc036b"
+        )
+        self.ipv4_tag = self.helper.api.tag.create(
+            tag_type="Event", value="ipv4-blacklist", color="#1c100b"
+        )
+        self.entity_identity = self.helper.api.identity.create(
+            name="Cisco Talos",
+            type="Organization",
+            description="Talosintilligence  IP Blacklist",
+        )
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -48,10 +68,33 @@ class Talosip:
     def _create_observable(self, ip):
         # creating observable
         created_observable = self.helper.api.stix_observable.create(
-            type="IPv4-Addr"
-            observable_value=ip
+            type="IPv4-Addr",
+            observable_value=ip,
+            createdByRef=self.entity_identity["id"],
         )
-        
+        # adding tag to created observable
+        self.helper.api.stix_entity.add_tag(
+            id=created_observable["id"], tag_id=self.talos_tag["id"]
+        )
+        self.helper.api.stix_entity.add_tag(
+            id=created_observable["id"], tag_id=self.ipv4_tag["id"]
+        )
+        # create external references
+        virus_ref = self.helper.api.external_reference.create(
+            source_name="Virustotal " + ip,
+            url="https://www.virustotal.com/gui/search/" + ip,
+        )
+        thre_ref = self.helper.api.external_reference.create(
+            source_name="Threatcrowd " + ip,
+            url="https://www.threatcrowd.org/pivot.php?data=" + ip,
+        )
+        # adding external references
+        self.helper.api.stix_entity.add_external_reference(
+            id=created_observable["id"], external_reference_id=virus_ref["id"]
+        )
+        self.helper.api.stix_entity.add_external_reference(
+            id=created_observable["id"], external_reference_id=thre_ref["id"]
+        )
 
     def _process_file(self):
         stix_bundle = []
@@ -59,8 +102,7 @@ class Talosip:
         stix_bundle.append(self.identity)
         while True:
             black_list_file = (
-                os.path.dirname(os.path.abspath(__file__)) +
-                "/ip_blacklist.txt"
+                os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
             )
             if os.path.isfile(black_list_file):
                 self.helper.log_info(
@@ -74,13 +116,12 @@ class Talosip:
                     "[54] File not exist or deleted. Downloading new file..."
                 )
                 self.helper.log_info(
-                    "Downloading file from {}".format(self.talosip_url))
-                ip_blacklist = wget.download(
-                    self.talosip_url, out="ip_blacklist.txt")
+                    "Downloading file from {}".format(self.talosip_url)
+                )
+                wget.download(self.talosip_url, out="ip_blacklist.txt")
                 # processing message...
                 ip_lists = open("ip_blacklist.txt", "r")
-                self.helper.log_info(
-                    "[59] File downloaded. Processing data...")
+                self.helper.log_info("[59] File downloaded. Processing data...")
                 for ip in ip_lists:
                     ip = ip.strip("\n")
                     _indicator = self._create_indicator(ip)
@@ -106,7 +147,7 @@ class Talosip:
                     labels=["threat-report"],
                     external_references=_report_external_reference,
                     object_refs=stix_indicators,
-                    custom_properties={CustomProperties.TAG_TYPE: self.tags}
+                    custom_properties={CustomProperties.TAG_TYPE: self.tags},
                 )
                 stix_bundle.append(_report)
                 # sending bundle
