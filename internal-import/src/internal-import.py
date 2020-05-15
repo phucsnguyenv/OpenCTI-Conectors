@@ -39,6 +39,8 @@ class InternalImport:
         )
         self.filename = ""
 
+        self.helper.log_info("Identity id: {}".format(self.identity["id"]))
+
     def _read_file(self, data):
         """reading data from a file"""
         with open(data, newline="") as csvfile:
@@ -123,20 +125,15 @@ class InternalImport:
             published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             createByRef=self.identity["id"],
         )
+        self.helper.api.stix_entity.add_tag(
+            id=created_report["id"], tag_id=self.tag["id"]
+        )
         # Adding observale to report
-        for create_observable_stix_id in created_observable_id_list:
-            self.helper.api.report.contains_stix_observable(
-                id=created_report["id"], stix_observable_id=created_observable_stix_id
-            )
-        # Getting created_indicator stix id key
-        for created_indicator_id in created_indicator_id_list:
-            created_indicator_stix = self.helper.api.indicator.read(
-                id=created_indicator_id
-            )
-            created_indicator_stix_id = created_indicator_stix["stix_id_key"]
-            # Adding indicator to report
-            self.helper.api.report.contains_stix_entity(
-                id=created_report["id"], entity_id=created_indicator_stix_id
+        # self.helper.log_info(created_observable_id_list)
+        for created_observable_stix_id in created_observable_id_list:
+            self.helper.log_info("Attaching {} to report -- {}".format(created_observable_stix_id, type(created_observable_stix_id)))
+            self.helper.api.report.add_stix_observable(
+                id=created_report["id"], stix_observable_id=created_observable_stix_id,report=created_report
             )
 
         self.helper.log_info("Archiving file...")
@@ -149,7 +146,7 @@ class InternalImport:
     def start(self):
         while True:
             self._open_files()
-            time.sleep(120)
+            time.sleep(50)
 
 
 if __name__ == "__main__":
