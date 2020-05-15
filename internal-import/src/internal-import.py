@@ -28,7 +28,7 @@ class InternalImport:
         self._data_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         self.identity = self.helper.api.identity.create(
             name="Internal Collector",
-            type="User",
+            type="Organization",
             description="Importing internal data from CSV file",
         )
         self.markingDefinitions = self.helper.api.marking_definition.create(
@@ -87,7 +87,7 @@ class InternalImport:
                 created_observable = self.helper.api.stix_observable.create(
                     type=observable_type,
                     observable_value=row[0],
-                    createByRef=self.identity["id"],
+                    createdByRef=self.identity["id"],
                     markingDefinitions=self.markingDefinitions["id"],
                     createIndicator=True,
                 )
@@ -123,7 +123,7 @@ class InternalImport:
             description=_report[1],
             name="Import data from file {}".format(self.filename),
             published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            createByRef=self.identity["id"],
+            createdByRef=self.identity["id"]
         )
         self.helper.api.stix_entity.add_tag(
             id=created_report["id"], tag_id=self.tag["id"]
