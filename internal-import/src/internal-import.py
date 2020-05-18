@@ -83,12 +83,27 @@ class InternalImport:
         else:
             raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
 
+    def _get_entity_indicator_type(self, data):
+        _dict = {
+            "md5": "file:hashes.MD5",
+            "ip": "ipv4-addr:value",
+            "url": "url:value",
+            "sha1": "file:hashes.SHA1",
+            "sha256": "file:hashes.256",
+            "domain": "domain-name:value",
+        }
+        _type = _dict.get(data.lower())
+        if(_type is not None):
+            return _type
+        else:
+            raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
+
     def stix_indicator_create(self, data):
-        _type = self._get_type(data[1]).lower()
+        _type = self._get_entity_indicator_type(data[1]).lower()
         _value = data[0]
         _indicator = Indicator(
             name=_value,
-            pattern="["+_type+":value = '"+_value+"']",
+            pattern="["+_type+" = '"+_value+"']",
             labels="malicious-activity",
             description="Indicator imported from {}".format(self.filename),
             object_marking_refs=TLP_WHITE,
@@ -160,23 +175,6 @@ class InternalImport:
             bundle=sending_stix_bundle.serialize(), update=True
         )
         self.helper.log_info("STIX Bundle has been sent.")
-        # created_report = self.helper.api.report.create(
-        #     report_class="Internal Report",
-        #     description=_report[1],
-        #     name="Import data from file {}".format(self.filename),
-        #     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        #     createdByRef=self.identity["id"]
-        # )
-        # self.helper.api.stix_entity.add_tag(
-        #     id=created_report["id"], tag_id=self.tag["id"]
-        # Adding observale to report
-        # self.helper.log_info(created_observable_id_list)
-        # for created_observable_stix_id in created_observable_id_list:
-        #     self.helper.log_info("Attaching {} to report -- {}".format(created_observable_stix_id, type(created_observable_stix_id)))
-        #     self.helper.api.report.add_stix_observable(
-        #         id=created_report["id"], stix_observable_id=created_observable_stix_id,report=created_report
-        #     )
-
         self.helper.log_info("Archiving files...")
         # archiving files
         _src = self._data_path + "/files/" + self.filename
