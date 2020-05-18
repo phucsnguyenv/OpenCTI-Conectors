@@ -7,6 +7,9 @@ It was developed to used with `OpenCTII 3.0.3`
 Check out my code on github and let me know if there are any problems. 
 
 ## Changed logs
+### v1.3.1
+- fix bugs `internal-import`
+
 ### v1.3.0
 - Add feature `internal-import`
 + Add Virustotal, Threatcrowd as external refrences to created observable
