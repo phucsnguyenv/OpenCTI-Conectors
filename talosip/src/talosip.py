@@ -142,6 +142,7 @@ class Talosip:
                     type="report",
                     description="This report represents the blacklist provided by Cisco Talos",
                     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    modified=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                     created_by_ref=self.identity,
                     object_marking_refs=TLP_WHITE,
                     labels=["threat-report"],
