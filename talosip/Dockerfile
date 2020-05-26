@@ -1,5 +1,7 @@
 FROM python:3.8-alpine
 LABEL maintainer="phucsnguyenv@gmail.com"
+LABEL base.name="connector-talosip" \
+    base.version=${VERSION}
 
 COPY src /opt/opencti-connector-talosip
 
@@ -10,7 +12,7 @@ RUN apk --no-cache add git build-base libmagic && \
     apk del git build-base
 
 COPY entrypoint.sh /
-ONBUILD RUN ls -la /opt/opencti-connector-talosip
+
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 
