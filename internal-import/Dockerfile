@@ -1,4 +1,9 @@
 FROM python:3.8-alpine
+LABEL maintainer="phucsnguyenv@gmail.com"
+LABEL base.name="connector-internal-import" \
+    base.version=${VERSION}
+
+ARG VERSION=unknown
 
 COPY src /opt/opencti-connector-internal-import
 

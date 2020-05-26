@@ -1,7 +1,7 @@
 version: '3'
 services: 
     connector-talosip:
-        image: opencti/connector-dev-talosip:rolling
+        image: phucsnguyenv/connector-talosip
         environment:
           - OPENCTI_URL=http://opencti:8080
           - OPENCTI_TOKEN=ChangeMe
