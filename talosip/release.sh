@@ -3,11 +3,11 @@ set -ex
 # docker hub username
 USERNAME=phucsnguyenv
 # image name
-IMAGE=talosip
+IMAGE=connector-talosip
 # ensure we're up to date
 git pull
 # bump version
-docker run --rm -v "$PWD":/app $USERNAME/bump patch
+# docker run --rm -v "$PWD":/app $USERNAME/bump patch
 version=`cat VERSION`
 echo "version: $version"
 # run build

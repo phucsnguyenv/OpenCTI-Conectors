@@ -3,5 +3,5 @@ set -ex
 # docker hub username
 USERNAME=phucsnguyenv
 # image name
-IMAGE=talosip
+IMAGE=connector-talosip
 docker build -t $USERNAME/$IMAGE:latest .
