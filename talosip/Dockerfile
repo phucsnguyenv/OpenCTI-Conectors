@@ -1,7 +1,7 @@
 FROM python:3.8-alpine
 LABEL maintainer="phucsnguyenv@gmail.com"
 LABEL base.name="connector-talosip" \
-    base.version=${VERSION}
+    base.version=${version}
 
 COPY src /opt/opencti-connector-talosip
 
