@@ -15,20 +15,15 @@ class InternalImport:
         # get config variable
         config_file_path = os.path.dirname(
             os.path.abspath(__file__)) + "/config.yml"
-        config = (
-            yaml.load(open(config_file_path, Loader=yaml.FullLoader))
-            if os.path.isfile(config_file_path)
-            else {}
-        )
+        config = (yaml.load(open(config_file_path, Loader=yaml.FullLoader))
+                  if os.path.isfile(config_file_path) else {})
         self.helper = OpenCTIConnectorHelper(config)
 
         self.update_existing_data = get_config_variable(
-            "UPDATE_EXISTING_DATA", ["connector",
-                                     "update_existing_data"], config
-        )
+            "UPDATE_EXISTING_DATA", ["connector", "update_existing_data"],
+            config)
         self.interval_scan = get_config_variable(
-            "INTERVAL_SCAN", ["internal_import", "interval_scan"], config
-        )
+            "INTERVAL_SCAN", ["internal_import", "interval_scan"], config)
         self._data_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         self.identity = self.helper.api.identity.create(
             name="Internal Collector",
@@ -41,13 +36,16 @@ class InternalImport:
             description="Importing internal data from CSV file",
             identity_class="organization",
         )
-        self.stix_tag = [{"tag_type": "Internal-Import", "value": "internal-importer", "color": "#2e99db"}]
+        self.stix_tag = [{
+            "tag_type": "Internal-Import",
+            "value": "internal-importer",
+            "color": "#2e99db"
+        }]
         self.markingDefinitions = self.helper.api.marking_definition.create(
-            definition_type="tlp", definition="TLP:WHITE"
-        )
-        self.tag = self.helper.api.tag.create(
-            tag_type="Internal-Import", value="internal-importer", color="#2e99db"
-        )
+            definition_type="tlp", definition="TLP:WHITE")
+        self.tag = self.helper.api.tag.create(tag_type="Internal-Import",
+                                              value="internal-importer",
+                                              color="#2e99db")
         self.filename = ""
 
         self.helper.log_info("Identity id: {}".format(self.identity["id"]))
@@ -69,7 +67,7 @@ class InternalImport:
                     _file = self._data_path + "/files/" + _file
                     self._read_file(_file)
         else:
-            self.helper.log_info("No files. Sleeping...")
+            self.helper.log_info("No files.")
 
     def _get_type(self, data):
         _dict = {
@@ -81,10 +79,11 @@ class InternalImport:
             "domain": "Domain",
         }
         _type = _dict.get(data.lower())
-        if(_type is not None):
+        if (_type is not None):
             return _type
         else:
-            raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
+            raise ValueError(
+                "[] Type must be url, ip, domain, md5, sha1 or sha256.")
 
     def _get_entity_indicator_type(self, data):
         _dict = {
@@ -96,23 +95,23 @@ class InternalImport:
             "domain": "domain-name:value",
         }
         _type = _dict.get(data.lower())
-        if(_type is not None):
+        if (_type is not None):
             return _type
         else:
-            raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
+            raise ValueError(
+                "[] Type must be url, ip, domain, md5, sha1 or sha256.")
 
     def stix_indicator_create(self, data):
         _type = self._get_entity_indicator_type(data[1]).lower()
         _value = data[0]
         _indicator = Indicator(
             name=_value,
-            pattern="["+_type+" = '"+_value+"']",
+            pattern="[" + _type + " = '" + _value + "']",
             labels="malicious-activity",
             description="Indicator imported from {}".format(self.filename),
             object_marking_refs=TLP_WHITE,
             custom_properties={CustomProperties.TAG_TYPE: self.stix_tag},
-            created_by_ref=self.stix_identity
-        )
+            created_by_ref=self.stix_identity)
         return _indicator
 
     def _process_message(self, data):
@@ -145,19 +144,19 @@ class InternalImport:
                 )
                 # attach external references to observable
                 self.helper.api.stix_entity.add_external_reference(
-                    id=created_observable["id"], external_reference_id=virus_ref["id"]
-                )
+                    id=created_observable["id"],
+                    external_reference_id=virus_ref["id"])
                 self.helper.api.stix_entity.add_external_reference(
-                    id=created_observable["id"], external_reference_id=thre_ref["id"]
-                )
+                    id=created_observable["id"],
+                    external_reference_id=thre_ref["id"])
                 # adding tag
                 self.helper.api.stix_entity.add_tag(
-                    id=created_observable["id"], tag_id=self.tag["id"]
-                )
+                    id=created_observable["id"], tag_id=self.tag["id"])
                 # this should be stix_id_key
                 created_stix_indicator = self.stix_indicator_create(row)
                 stix_bundle.append(created_stix_indicator)
-                created_stix_indicator_id_list.append(created_stix_indicator["id"])
+                created_stix_indicator_id_list.append(
+                    created_stix_indicator["id"])
         # Creating report
         self.helper.log_info("Generating report...")
         stix_report = Report(
@@ -174,9 +173,8 @@ class InternalImport:
         stix_bundle.append(stix_report)
         self.helper.log_info("Sending bundle....")
         sending_stix_bundle = Bundle(objects=stix_bundle)
-        self.helper.send_stix2_bundle(
-            bundle=sending_stix_bundle.serialize(), update=True
-        )
+        self.helper.send_stix2_bundle(bundle=sending_stix_bundle.serialize(),
+                                      update=True)
         self.helper.log_info("STIX Bundle has been sent.")
         self.helper.log_info("Archiving files...")
         # archiving files
@@ -184,12 +182,13 @@ class InternalImport:
         _dest = self._data_path + "/archive"
         shutil.move(_src, _dest)
         self.helper.log_info("Files achived...")
-        self.helper.log_info("Sleeping...")
 
     def start(self):
         while True:
             self._open_files()
-            time.sleep(self.interval_scan)
+            time.sleep(int(self.interval_scan))
+            self.helper.log_info("Sleeping for {} sec.".format(
+                self.interval_scan))
 
 
 if __name__ == "__main__":
