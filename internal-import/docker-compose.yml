@@ -1,7 +1,7 @@
 version: '3'
 services: 
     connector-internal-import:
-        image: phucsnguyenv/connector-internal-import:1.3.0
+        image: phucsnguyenv/connector-internal-import:1.3.3
         volumes: 
           - ChangeMe:/opt/opencti-connector-internal-import/data/
         environment:
