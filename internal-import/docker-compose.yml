@@ -14,6 +14,7 @@ services:
           - CONNECTOR_CONFIDENCE_LEVEL=3
           - CONNECTOR_UPDATE_EXISTING_DATA=true
           - CONNECTOR_LOG_LEVEL=info
+          - INTERVAL_SCAN=123
         depends_on: 
           - opencti
         restart: always

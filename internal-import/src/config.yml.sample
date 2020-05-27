@@ -11,6 +11,6 @@ connector:
   log_level: 'info'
   update_existing_data: true
   
-exrefadd:
+internal_import:
   max_tlp: 'TLP:AMBER'
-  interval: 1 #day
+  interval_scan: 123
