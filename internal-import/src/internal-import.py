@@ -26,6 +26,9 @@ class InternalImport:
             "UPDATE_EXISTING_DATA", ["connector",
                                      "update_existing_data"], config
         )
+        self.interval_scan = get_config_variable(
+            "INTERVAL_SCAN", ["internal_import", "interval_scan"], config
+        )
         self._data_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         self.identity = self.helper.api.identity.create(
             name="Internal Collector",
@@ -186,7 +189,7 @@ class InternalImport:
     def start(self):
         while True:
             self._open_files()
-            time.sleep(120)
+            time.sleep(self.interval_scan)
 
 
 if __name__ == "__main__":

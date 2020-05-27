@@ -7,6 +7,12 @@ It was developed to used with `OpenCTII 3.0.3`
 Check out my code on github and let me know if there are any problems. 
 
 ## Changed logs
+### v1.3.4
+- Interval_scan time can be change from docker-compose.yml for `internal-import` connector
+
+### v1.3.3
+- Modified Docker file
+
 ### v1.3.2
 - Add readme file for each connector
 - Fix some smal bugs
