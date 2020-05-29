@@ -30,7 +30,7 @@ class VirustotalReference:
         self.helper.log_info("External reference created with id {}".format(created_reference["id"]))
         self.helper.log_info("Attaching the reference to {}".format(entity_id))
         self.helper.api.stix_entity.add_external_reference(
-            id=entity_id["id"],
+            id=entity_id,
             external_reference_id=created_reference["id"]
         )
         
