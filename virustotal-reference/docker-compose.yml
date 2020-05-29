@@ -8,10 +8,9 @@ services:
       - CONNECTOR_ID=ChangeMe
       - CONNECTOR_TYPE=INTERNAL_ENRICHMENT
       - CONNECTOR_NAME=Virustotal External Reference Add
-      - CONNECTOR_SCOPE=domain
+      - CONNECTOR_SCOPE=domain,ipv4-addr,url,file-md5,file-sha1,file-sha256
       - CONNECTOR_CONFIDENCE_LEVEL=3
       - CONNECTOR_LOG_LEVEL=info
-      - IPINFO_MAX_TLP=TLP:AMBER
     restart: always
     depends_on: 
       - opencti

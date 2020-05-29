@@ -6,7 +6,7 @@ connector:
   id: 'ChangeMe'
   type: 'INTERNAL_ENRICHMENT'
   name: 'Virustotal Reference'
-  scope: 'domain'
+  scope: 'domain,ipv4-addr,url,file-md5,file-sha1,file-sha256'
   confidence_level: 3
   log_level: 'info'
 

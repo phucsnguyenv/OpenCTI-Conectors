@@ -25,10 +25,10 @@ class VirustotalReference:
         entity_id = data["entity_id"]
         observable = self.helper.api.stix_observable.read(id=entity_id)
         observable_value = observable["observable_value"]
-        self.helper.log_info("Creating virustotal reference for {}".format(observable_value))
+        # self.helper.log_info("Creating virustotal reference for {}".format(observable_value))
         created_reference = self.create_reference(observable_value)
-        self.helper.log_info("External reference created with id {}".format(created_reference["id"]))
-        self.helper.log_info("Attaching the reference to {}".format(entity_id))
+        # self.helper.log_info("External reference created with id {}".format(created_reference["id"]))
+        # self.helper.log_info("Attaching the reference to {}".format(entity_id))
         self.helper.api.stix_entity.add_external_reference(
             id=entity_id,
             external_reference_id=created_reference["id"]

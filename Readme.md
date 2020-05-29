@@ -7,6 +7,10 @@ It was developed to used with `OpenCTII 3.0.3`
 Check out my code on github and let me know if there are any problems. 
 
 ## Changed logs
+### v1.4.0
+- Add new connector `virustotal-reference`
+  + This connector will add link search on virustotal to obervable as external reference.
+
 ### v1.3.4
 - Interval_scan time can be change from docker-compose.yml for `internal-import` connector
 
