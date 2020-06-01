@@ -9,7 +9,7 @@ Check out my code on github and let me know if there are any problems.
 ## Changed logs
 ### v1.4.1
 - update `internal-import` v1.3.5
-+ fix bug while archiving file that already exist in the `archive` folder
+  + fix bug while archiving file that already exist in the `archive` folder
 
 ### v1.4.0
 - Add new connector `virustotal-reference`
@@ -30,13 +30,13 @@ Check out my code on github and let me know if there are any problems.
 
 ### v1.3.0
 - Add feature `internal-import`
-+ Add Virustotal, Threatcrowd as external refrences to created observable
+  + Add Virustotal, Threatcrowd as external refrences to created observable
 - Fix bugs on `internal-import`
-+ Observables and Indicators is now added to report
+  + Observables and Indicators is now added to report
 
 ### v1.2.0
 - Add feature `talosip`
-+ Add Virustotal, Threatcrowd as external refrences to created observable
+  + Add Virustotal, Threatcrowd as external refrences to created observable
 
 ### v1.1.0
 - Adding `internal-import` connector
