@@ -7,6 +7,10 @@ It was developed to used with `OpenCTII 3.0.3`
 Check out my code on github and let me know if there are any problems. 
 
 ## Changed logs
+### v1.4.1
+- update `internal-import` v1.3.5
++ fix bug while archiving file that already exist in the `archive` folder
+
 ### v1.4.0
 - Add new connector `virustotal-reference`
   + This connector will add link search on virustotal to obervable as external reference.
