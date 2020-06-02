@@ -64,6 +64,11 @@ class Talosip:
         self.tlp_white_marking_definition = self.helper.api.marking_definition.read(
             filters={"key": "definition", "values": ["TLP:WHITE"]}
         )
+        self.stix_report_id = get_config_variable(
+            "REPORT_ID",
+            ["talosip", "report_id"],
+            config,
+        )
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -134,7 +139,7 @@ class Talosip:
                     stix_indicators.append(_indicator["id"])
                     stix_bundle.append(_indicator)
                 # create a report
-                _report_uuid = "report--1620352a-00ff-4ab8-97cb-eeaed0779a90"
+                _report_uuid = "report--"+self.stix_report_id
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
