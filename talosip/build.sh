@@ -4,4 +4,5 @@ set -ex
 USERNAME=phucsnguyenv
 # image name
 IMAGE=connector-talosip
-docker build -t $USERNAME/$IMAGE:latest .
+version=`cat VERSION`
+docker build -t $USERNAME/$IMAGE:$version .

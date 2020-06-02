@@ -12,7 +12,7 @@ echo "version: $version"
 # run build
 ./build.sh
 # tag it
-docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$version
+docker tag $USERNAME/$IMAGE:$version $USERNAME/$IMAGE:latest 
 # push it
 docker push $USERNAME/$IMAGE:latest
 docker push $USERNAME/$IMAGE:$version
