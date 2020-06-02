@@ -61,6 +61,9 @@ class Talosip:
             type="Organization",
             description="Talosintilligence  IP Blacklist",
         )
+        self.tlp_white_marking_definition = self.helper.api.marking_definition.read(
+            filters={"key": "definition", "values": ["TLP:WHITE"]}
+        )
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -71,6 +74,8 @@ class Talosip:
             type="IPv4-Addr",
             observable_value=ip,
             createdByRef=self.entity_identity["id"],
+            description="from talos via OpenCTI",
+            markingDefinitions=self.tlp_white_marking_definition["id"],
         )
         # adding tag to created observable
         self.helper.api.stix_entity.add_tag(
