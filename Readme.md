@@ -6,6 +6,12 @@ It was developed to used with `OpenCTII 3.0.3`
 
 Check out my code on github and let me know if there are any problems. 
 
+## Compatible version
+|| OpenCTI | PyCTI | Python | Talosip |internal-import |virustotal-reference |
+|| --- | ----------- | --- | ----------- | --- | ----------- |
+|Version | 3.0.3 -> 3.2.2 | 3.2.2 |3.8|All|All|All
+
+
 ## Changed logs
 ## v.1.4.1
 - update `talosip` v1.4.0
