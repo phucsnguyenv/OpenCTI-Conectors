@@ -69,6 +69,7 @@ class Talosip:
             published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             markingDefinitions=self.tlp_white_marking_definition["id"],
             description="This report represents the blacklist provided by Cisco Talos",
+            report_class="Threat Report",
         )
         # self.stix_report_id = get_config_variable(
         #     "REPORT_ID", ["talosip", "report_id"], config,
@@ -143,7 +144,7 @@ class Talosip:
                     stix_indicators.append(_indicator["id"])
                     stix_bundle.append(_indicator)
                 # create a report
-                
+
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
