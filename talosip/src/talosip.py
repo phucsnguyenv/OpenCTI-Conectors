@@ -112,21 +112,22 @@ class Talosip:
             black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
             )
+            # if os.path.isfile(black_list_file):
+            #     self.helper.log_info(
+            #         "[48] File IP blacklist existing, deleting file..."
+            #     )
+            #     # deleting file....
+            #     os.remove(black_list_file)
+            #     self.helper.log_info("[50] File deleted.")
+            # elif not os.path.isfile(black_list_file):
+            #     self.helper.log_info(
+            #         "[54] File not exist or deleted. Downloading new file..."
+            #     )
+            #     self.helper.log_info(
+            #         "Downloading file from {}".format(self.talosip_url)
+            #     )
+            #     wget.download(self.talosip_url, out="ip_blacklist.txt")
             if os.path.isfile(black_list_file):
-                self.helper.log_info(
-                    "[48] File IP blacklist existing, deleting file..."
-                )
-                # deleting file....
-                os.remove(black_list_file)
-                self.helper.log_info("[50] File deleted.")
-            elif not os.path.isfile(black_list_file):
-                self.helper.log_info(
-                    "[54] File not exist or deleted. Downloading new file..."
-                )
-                self.helper.log_info(
-                    "Downloading file from {}".format(self.talosip_url)
-                )
-                wget.download(self.talosip_url, out="ip_blacklist.txt")
                 # processing message...
                 ip_lists = open("ip_blacklist.txt", "r")
                 self.helper.log_info("[59] File downloaded. Processing data...")
@@ -143,15 +144,18 @@ class Talosip:
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
                 )
+                self.helper.log_info("Creating External reference...")
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
                     external_id="ip-blacklist",
                 )
+                self.helper.log_info("Attaching external reference to report...")
                 self.helper.api.stix_entity.add_external_reference(
                     id=created_report["id"],
                     external_reference_id=_report_external_reference["id"],
                 )
+                self.helper.log_info("Adding observables to report...")
                 for observable_id in created_observable_id:
                     self.help.api.report.contains_stix_observable(
                         id=created_report["id"], stix_observable_id=[observable_id]

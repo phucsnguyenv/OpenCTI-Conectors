@@ -1,2 +1,5 @@
 .vscode
 .vscode/settings.json
+.env
+docker-compose.yml
+talosip/src/ip_blacklist.txt
