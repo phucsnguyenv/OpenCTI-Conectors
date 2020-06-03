@@ -65,9 +65,7 @@ class Talosip:
             filters={"key": "definition", "values": ["TLP:WHITE"]}
         )
         self.stix_report_id = get_config_variable(
-            "REPORT_ID",
-            ["talosip", "report_id"],
-            config,
+            "REPORT_ID", ["talosip", "report_id"], config,
         )
 
     def get_interval(self):
@@ -139,7 +137,13 @@ class Talosip:
                     stix_indicators.append(_indicator["id"])
                     stix_bundle.append(_indicator)
                 # create a report
-                _report_uuid = "report--"+self.stix_report_id
+                created_report = self.helper.api.report.create(
+                    name="Talos Intelligence IP Blacklist",
+                    published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    markingDefinitions=self.tlp_white_marking_definition["id"],
+                    description="This report represents the blacklist provided by Cisco Talos",
+                )
+                _report_uuid = "report--" + self.stix_report_id
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
@@ -147,10 +151,9 @@ class Talosip:
                 )
                 self.helper.log_info("Creating report...")
                 _report = Report(
-                    id=_report_uuid,
+                    id=created_report["stix_id_key"],
                     name="Talos Intelligence IP Blacklist",
                     type="report",
-                    description="This report represents the blacklist provided by Cisco Talos",
                     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                     created_by_ref=self.identity,
                     object_marking_refs=TLP_WHITE,
