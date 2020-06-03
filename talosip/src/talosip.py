@@ -64,13 +64,6 @@ class Talosip:
         self.tlp_white_marking_definition = self.helper.api.marking_definition.read(
             filters={"key": "definition", "values": ["TLP:WHITE"]}
         )
-        self.created_report = self.helper.api.report.create(
-            name="Talos Intelligence IP Blacklist",
-            published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            markingDefinitions=self.tlp_white_marking_definition["id"],
-            description="This report represents the blacklist provided by Cisco Talos",
-            report_class="Threat Report",
-        )
         # self.stix_report_id = get_config_variable(
         #     "REPORT_ID", ["talosip", "report_id"], config,
         # )
@@ -86,6 +79,7 @@ class Talosip:
             createdByRef=self.entity_identity["id"],
             description="from talos via OpenCTI",
             markingDefinitions=self.tlp_white_marking_definition["id"],
+            createIndicator=True,
         )
         # adding tag to created observable
         self.helper.api.stix_entity.add_tag(
@@ -110,11 +104,10 @@ class Talosip:
         self.helper.api.stix_entity.add_external_reference(
             id=created_observable["id"], external_reference_id=thre_ref["id"]
         )
+        return created_observable
 
     def _process_file(self):
-        stix_bundle = []
-        stix_indicators = []
-        stix_bundle.append(self.identity)
+        created_observable_id = []
         while True:
             black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
@@ -139,55 +132,34 @@ class Talosip:
                 self.helper.log_info("[59] File downloaded. Processing data...")
                 for ip in ip_lists:
                     ip = ip.strip("\n")
-                    _indicator = self._create_indicator(ip)
-                    self._create_observable(ip)
-                    stix_indicators.append(_indicator["id"])
-                    stix_bundle.append(_indicator)
+                    created_observable = self._create_observable(ip)
+                    created_observable_id.append(created_observable["id"])
                 # create a report
-
+                self.helper.log_info("Creating report...")
+                created_report = self.helper.api.report.create(
+                    name="Talos Intelligence IP Blacklist",
+                    published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    markingDefinitions=self.tlp_white_marking_definition["id"],
+                    description="This report represents the blacklist provided by Cisco Talos",
+                    report_class="Threat Report",
+                )
                 _report_external_reference = ExternalReference(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
                     external_id="ip-blacklist",
                 )
-                self.helper.log_info("Creating report...")
-                _report = Report(
-                    id=self.created_report["stix_id_key"],
-                    name="Talos Intelligence IP Blacklist",
-                    type="report",
-                    published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    created_by_ref=self.identity,
-                    object_marking_refs=TLP_WHITE,
-                    labels=["threat-report"],
-                    external_references=_report_external_reference,
-                    object_refs=stix_indicators,
-                    custom_properties={CustomProperties.TAG_TYPE: self.tags},
+                self.helper.api.stix_entity.add_external_reference(
+                    id=created_report["id"],
+                    external_reference_id=_report_external_reference["id"],
                 )
-                stix_bundle.append(_report)
-                # sending bundle
-                self.helper.log_info("Sending bundle....")
-                sending_bundle = Bundle(objects=stix_bundle)
-                self.helper.send_stix2_bundle(
-                    bundle=sending_bundle.serialize(), update=self.update_existing_data
-                )
-                self.helper.log_info("STIX Bundle has been sent.")
+                for observable_id in created_observable_id:
+                    self.help.api.report.contains_stix_observable(
+                        id=created_report["id"], stix_observable_id=[observable_id]
+                    )
+
                 break
             else:
                 raise ValueError("[] Error unknown.")
-
-    def _create_indicator(self, data):
-        # create stix indicator
-        _ip = IPv4Address(value=data)
-        _indicator = Indicator(
-            name=data,
-            description="from Talos IP blacklist via Opencti",
-            pattern="[" + _ip.type + ":value = '" + _ip.value + "']",
-            labels="malicious-activity",
-            created_by_ref=self.identity,
-            object_marking_refs=TLP_WHITE,
-            custom_properties={CustomProperties.TAG_TYPE: self.tags},
-        )
-        return _indicator
 
     def start(self):
         self.helper.log_info("[111] Fetching Talos IP database...")
