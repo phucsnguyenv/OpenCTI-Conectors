@@ -64,9 +64,6 @@ class Talosip:
         self.tlp_white_marking_definition = self.helper.api.marking_definition.read(
             filters={"key": "definition", "values": ["TLP:WHITE"]}
         )
-        # self.stix_report_id = get_config_variable(
-        #     "REPORT_ID", ["talosip", "report_id"], config,
-        # )
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -106,36 +103,59 @@ class Talosip:
         )
         return created_observable
 
+    def _create_indicator(self, ip, observable_id):
+        created_indicator = self.helper.api.indicator.create(
+            name=ip,
+            indicator_pattern="[ipv4-addr:value = '"+ip+"']",
+            markingDefinitions=self.tlp_white_marking_definition["id"],
+            update=self.update_existing_data
+        )
+        self.helper.log_info("Adding observable...")
+        self.helper.api.indicator.add_stix_observable(
+            id=created_indicator["id"],
+            stix_observable_id=observable_id
+        )
+
+        return created_indicator
+
     def _process_file(self):
         created_observable_id = []
+        created_indicator_id = []
         while True:
             black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
             )
-            # if os.path.isfile(black_list_file):
-            #     self.helper.log_info(
-            #         "[48] File IP blacklist existing, deleting file..."
-            #     )
-            #     # deleting file....
-            #     os.remove(black_list_file)
-            #     self.helper.log_info("[50] File deleted.")
-            # elif not os.path.isfile(black_list_file):
-            #     self.helper.log_info(
-            #         "[54] File not exist or deleted. Downloading new file..."
-            #     )
-            #     self.helper.log_info(
-            #         "Downloading file from {}".format(self.talosip_url)
-            #     )
-            #     wget.download(self.talosip_url, out="ip_blacklist.txt")
             if os.path.isfile(black_list_file):
+                self.helper.log_info(
+                    "[48] File IP blacklist existing, deleting file..."
+                )
+                # deleting file....
+                os.remove(black_list_file)
+                self.helper.log_info("[50] File deleted.")
+            elif not os.path.isfile(black_list_file):
+                self.helper.log_info(
+                    "[54] File not exist or deleted. Downloading new file..."
+                )
+                self.helper.log_info(
+                    "Downloading file from {}".format(self.talosip_url)
+                )
+                wget.download(self.talosip_url, out="ip_blacklist.txt")
+            # if os.path.isfile(black_list_file):
                 # processing message...
                 ip_lists = open("ip_blacklist.txt", "r")
                 self.helper.log_info("[59] File downloaded. Processing data...")
                 for ip in ip_lists:
                     ip = ip.strip("\n")
                     created_observable = self._create_observable(ip)
+                    created_indicator = self._create_indicator(ip, created_observable['id'])
                     created_observable_id.append(created_observable["id"])
+                    created_indicator_id.append(created_indicator['id'])
                 # create a report
+                # self.helper.log_info("Creating external reference...")
+                # _report_external_reference = ExternalReference(
+                #     source_name="Talos Intelligence",
+                #     url="https://talosintelligence.com/",
+                # )
                 self.helper.log_info("Creating report...")
                 created_report = self.helper.api.report.create(
                     name="Talos Intelligence IP Blacklist",
@@ -143,22 +163,21 @@ class Talosip:
                     markingDefinitions=self.tlp_white_marking_definition["id"],
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
+                    createdByRef=self.identity['id']
+                    # external_reference_id=_report_external_reference['id']
                 )
                 self.helper.log_info("Creating External reference...")
-                _report_external_reference = ExternalReference(
-                    source_name="Talos Intelligence",
-                    url="https://talosintelligence.com/",
-                    external_id="ip-blacklist",
-                )
-                self.helper.log_info("Attaching external reference to report...")
-                self.helper.api.stix_entity.add_external_reference(
-                    id=created_report["id"],
-                    external_reference_id=_report_external_reference["id"],
-                )
+
                 self.helper.log_info("Adding observables to report...")
                 for observable_id in created_observable_id:
-                    self.help.api.report.contains_stix_observable(
-                        id=created_report["id"], stix_observable_id=[observable_id]
+                    self.helper.api.report.add_stix_observable(
+                        id=created_report["id"], stix_observable_id=observable_id
+                    )
+                self.helper.log_info("Adding entity...")
+                for indicator_id in created_indicator_id:
+                    self.helper.api.report.add_stix_entity(
+                        id=created_report["id"],
+                        entity_id=indicator_id
                     )
 
                 break
