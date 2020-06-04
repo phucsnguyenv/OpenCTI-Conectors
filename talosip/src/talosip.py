@@ -154,7 +154,7 @@ class Talosip:
                     created_indicator_id.append(created_indicator["id"])
                 # create a report
                 self.helper.log_info("Creating external reference...")
-                _report_external_reference = self.helper.external_reference.create(
+                _report_external_reference = self.helper.api.external_reference.create(
                     source_name="Talos Intelligence",
                     url="https://talosintelligence.com/",
                 )
