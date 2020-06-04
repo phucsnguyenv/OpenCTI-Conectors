@@ -173,10 +173,9 @@ class Talosip:
                         createdByRef=self.entity_identity["id"],
                         external_reference_id=_report_external_reference["id"],
                     )
-                # self.helper.log_info("Adding External reference...")
-                # self.helper.api.add_external_reference(
-                #     id=created_report["id"], external_reference_id=_report_external_reference["id"]
-                # )
+                else:
+                    self.helper.log_info("Updating existing report")
+
                 self.helper.log_info("Adding observables to report...")
                 for observable_id in created_observable_id:
                     self.helper.api.report.add_stix_observable(
