@@ -163,6 +163,7 @@ class Talosip:
                     name="Talos Intelligence IP Blacklist",
                 )
                 if created_report is None:
+                    self.helper.log_info("No report yet, creating a new one")
                     created_report = self.helper.api.report.create(
                         name="Talos Intelligence IP Blacklist",
                         published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
