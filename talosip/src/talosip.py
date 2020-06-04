@@ -39,12 +39,12 @@ class Talosip:
         self.helper = OpenCTIConnectorHelper(config)
 
         self.helper.log_info("Creating an Identity...")
-        self.identity = Identity(
-            type="identity",
-            name="Cisco Talos",
-            description="Talosintilligence  IP Blacklist",
-            identity_class="organization",
-        )
+        # self.identity = Identity(
+        #     type="identity",
+        #     name="Cisco Talos",
+        #     description="Talosintilligence  IP Blacklist",
+        #     identity_class="organization",
+        # )
         self.tags = [
             {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"},
             {"tag_type": "Event", "value": "ipv4-blacklist", "color": "#1c100b"},
@@ -165,13 +165,14 @@ class Talosip:
                     markingDefinitions=self.tlp_white_marking_definition["id"],
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
-                    createdByRef=self.identity["id"]
+                    createdByRef=self.entity_identity["id"],
+                    external_reference_id=_report_external_reference["id"],
                 )
-                self.helper.log_info("Adding External reference...")
-                self.helper.api.add_external_reference(
-                    id=created_report["id"], external_reference_id=_report_external_reference["id"]
-                )
-                
+                # self.helper.log_info("Adding External reference...")
+                # self.helper.api.add_external_reference(
+                #     id=created_report["id"], external_reference_id=_report_external_reference["id"]
+                # )
+
                 self.helper.log_info("Adding observables to report...")
                 for observable_id in created_observable_id:
                     self.helper.api.report.add_stix_observable(
