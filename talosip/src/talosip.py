@@ -106,14 +106,13 @@ class Talosip:
     def _create_indicator(self, ip, observable_id):
         created_indicator = self.helper.api.indicator.create(
             name=ip,
-            indicator_pattern="[ipv4-addr:value = '"+ip+"']",
+            indicator_pattern="[ipv4-addr:value = '" + ip + "']",
             markingDefinitions=self.tlp_white_marking_definition["id"],
-            update=self.update_existing_data
+            update=self.update_existing_data,
         )
         self.helper.log_info("Adding observable...")
         self.helper.api.indicator.add_stix_observable(
-            id=created_indicator["id"],
-            stix_observable_id=observable_id
+            id=created_indicator["id"], stix_observable_id=observable_id
         )
 
         return created_indicator
@@ -140,22 +139,24 @@ class Talosip:
                     "Downloading file from {}".format(self.talosip_url)
                 )
                 wget.download(self.talosip_url, out="ip_blacklist.txt")
-            # if os.path.isfile(black_list_file):
+                # if os.path.isfile(black_list_file):
                 # processing message...
                 ip_lists = open("ip_blacklist.txt", "r")
                 self.helper.log_info("[59] File downloaded. Processing data...")
                 for ip in ip_lists:
                     ip = ip.strip("\n")
                     created_observable = self._create_observable(ip)
-                    created_indicator = self._create_indicator(ip, created_observable['id'])
+                    created_indicator = self._create_indicator(
+                        ip, created_observable["id"]
+                    )
                     created_observable_id.append(created_observable["id"])
-                    created_indicator_id.append(created_indicator['id'])
+                    created_indicator_id.append(created_indicator["id"])
                 # create a report
-                # self.helper.log_info("Creating external reference...")
-                # _report_external_reference = ExternalReference(
-                #     source_name="Talos Intelligence",
-                #     url="https://talosintelligence.com/",
-                # )
+                self.helper.log_info("Creating external reference...")
+                _report_external_reference = self.helper.external_reference.create(
+                    source_name="Talos Intelligence",
+                    url="https://talosintelligence.com/",
+                )
                 self.helper.log_info("Creating report...")
                 created_report = self.helper.api.report.create(
                     name="Talos Intelligence IP Blacklist",
@@ -163,8 +164,8 @@ class Talosip:
                     markingDefinitions=self.tlp_white_marking_definition["id"],
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
-                    createdByRef=self.identity['id']
-                    # external_reference_id=_report_external_reference['id']
+                    createdByRef=self.identity["id"],
+                    external_reference_id=_report_external_reference["id"],
                 )
                 self.helper.log_info("Creating External reference...")
 
@@ -176,8 +177,7 @@ class Talosip:
                 self.helper.log_info("Adding entity...")
                 for indicator_id in created_indicator_id:
                     self.helper.api.report.add_stix_entity(
-                        id=created_report["id"],
-                        entity_id=indicator_id
+                        id=created_report["id"], entity_id=indicator_id
                     )
 
                 break
