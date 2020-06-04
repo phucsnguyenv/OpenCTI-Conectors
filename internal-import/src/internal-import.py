@@ -7,7 +7,6 @@ from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
 from pycti.utils.constants import CustomProperties
-from stix2 import Indicator, TLP_WHITE, Report, Bundle, Identity
 
 
 class InternalImport:
