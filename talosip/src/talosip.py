@@ -76,7 +76,7 @@ class Talosip:
             createdByRef=self.entity_identity["id"],
             description="from talos via OpenCTI",
             markingDefinitions=self.tlp_white_marking_definition["id"],
-            createIndicator=True,
+            createIndicator=False,
         )
         # adding tag to created observable
         self.helper.api.stix_entity.add_tag(
