@@ -198,6 +198,7 @@ class InternalImport:
             createdByRef=self.identity["id"],
             markingDefinitions=self.markingDefinitions["id"],
             description=_report[1],
+            report_class="Internal Report",
         )
         # adding observable
         self.helper.log_info("Attaching observables to report")
