@@ -109,6 +109,7 @@ class Talosip:
             indicator_pattern="[ipv4-addr:value = '" + ip + "']",
             markingDefinitions=self.tlp_white_marking_definition["id"],
             update=self.update_existing_data,
+            main_observable_type="ipv4-addr",
         )
         self.helper.log_info("Adding observable...")
         self.helper.api.indicator.add_stix_observable(
