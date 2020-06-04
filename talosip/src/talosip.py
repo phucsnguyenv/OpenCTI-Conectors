@@ -5,15 +5,7 @@ import wget
 from datetime import datetime
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
-from stix2 import (
-    Indicator,
-    IPv4Address,
-    Bundle,
-    ExternalReference,
-    Report,
-    TLP_WHITE,
-    Identity,
-)
+from stix2 import TLP_WHITE
 from pycti.utils.constants import CustomProperties
 
 
