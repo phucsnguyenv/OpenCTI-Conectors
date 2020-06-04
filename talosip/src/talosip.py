@@ -37,18 +37,6 @@ class Talosip:
             config,
         )
         self.helper = OpenCTIConnectorHelper(config)
-
-        self.helper.log_info("Creating an Identity...")
-        # self.identity = Identity(
-        #     type="identity",
-        #     name="Cisco Talos",
-        #     description="Talosintilligence  IP Blacklist",
-        #     identity_class="organization",
-        # )
-        self.tags = [
-            {"tag_type": "Event", "value": "TalosIntelligence", "color": "#fc036b"},
-            {"tag_type": "Event", "value": "ipv4-blacklist", "color": "#1c100b"},
-        ]
         # get tag
         self.talos_tag = self.helper.api.tag.create(
             tag_type="Event", value="TalosIntelligence", color="#fc036b"
@@ -56,6 +44,7 @@ class Talosip:
         self.ipv4_tag = self.helper.api.tag.create(
             tag_type="Event", value="ipv4-blacklist", color="#1c100b"
         )
+        self.helper.log_info("Creating an Identity...")
         self.entity_identity = self.helper.api.identity.create(
             name="Cisco Talos",
             type="Organization",
@@ -126,6 +115,12 @@ class Talosip:
             markingDefinitions=self.tlp_white_marking_definition["id"],
             update=self.update_existing_data,
             main_observable_type="ipv4-addr",
+        )
+        self.helper.api.stix_entity.add_tag(
+            id=created_indicator["id"], tag_id=self.ipv4_tag["id"]
+        )
+        self.helper.api.stix_entity.add_tag(
+            id=created_indicator["id"], tag_id=self.talos_tag["id"]
         )
         self.helper.log_info("Adding observable...")
         self.helper.api.indicator.add_stix_observable(
