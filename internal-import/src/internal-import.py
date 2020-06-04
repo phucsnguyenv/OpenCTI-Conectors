@@ -33,19 +33,6 @@ class InternalImport:
             type="Organization",
             description="Importing internal data from CSV file",
         )
-        # self.stix_identity = Identity(
-        #     name="Internal Collector",
-        #     type="identity",
-        #     description="Importing internal data from CSV file",
-        #     identity_class="organization",
-        # )
-        # self.stix_tag = [
-        #     {
-        #         "tag_type": "Internal-Import",
-        #         "value": "internal-importer",
-        #         "color": "#2e99db",
-        #     }
-        # ]
         self.markingDefinitions = self.helper.api.marking_definition.create(
             definition_type="tlp", definition="TLP:WHITE"
         )
@@ -53,8 +40,6 @@ class InternalImport:
             tag_type="Internal-Import", value="internal-importer", color="#2e99db"
         )
         self.filename = ""
-
-        # self.helper.log_info("Identity id: {}".format(self.identity["id"]))
 
     def _read_file(self, data):
         """reading data from a file"""
@@ -90,34 +75,6 @@ class InternalImport:
         else:
             raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
 
-    # def _get_entity_indicator_type(self, data):
-    #     _dict = {
-    #         "md5": "file:hashes.MD5",
-    #         "ip": "ipv4-addr:value",
-    #         "url": "url:value",
-    #         "sha1": "file:hashes.SHA1",
-    #         "sha256": "file:hashes.256",
-    #         "domain": "domain-name:value",
-    #     }
-    #     _type = _dict.get(data.lower())
-    #     if _type is not None:
-    #         return _type
-    #     else:
-    #         raise ValueError("[] Type must be url, ip, domain, md5, sha1 or sha256.")
-
-    # def _indicator_create(self, data, observable_id):
-    #     _type = self._get_entity_indicator_type(data[1]).lower()
-    #     _value = data[0]
-    #     _indicator = Indicator(
-    #         name=_value,
-    #         pattern="[" + _type + " = '" + _value + "']",
-    #         labels="malicious-activity",
-    #         description="Indicator imported from {}".format(self.filename),
-    #         object_marking_refs=TLP_WHITE,
-    #         custom_properties={CustomProperties.TAG_TYPE: self.stix_tag},
-    #         created_by_ref=self.stix_identity,
-    #     )
-    #     return _indicator
     def _indicator_create(self, data, observable_id):
         _type = self._get_type(data[1]).lower()
         _value = data[0]
@@ -144,9 +101,6 @@ class InternalImport:
         """doing things with data here"""
         created_observables_id = []
         created_indicators_id = []
-        # created_stix_indicator_id_list = []
-        # stix_bundle = []
-        # stix_bundle.append(self.stix_identity)
         self.helper.log_info("Creating Observable data")
         for row in data:
             if row[0] == "_report":
@@ -188,8 +142,6 @@ class InternalImport:
                     row, created_observable["id"]
                 )
                 created_indicators_id.append(created_indicator["id"])
-                # stix_bundle.append(created_stix_indicator)
-                # created_stix_indicator_id_list.append(created_stix_indicator["id"])
         # Creating report
         self.helper.log_info("Generating report...")
         created_report = self.helper.api.report.create(
@@ -216,26 +168,6 @@ class InternalImport:
             self.helper.api.report.add_stix_entity(
                 id=created_report["id"], entity_id=indicator_id
             )
-        # stix_report = Report(
-        #     name="Data imported from {}".format(self.filename),
-        #     type="report",
-        #     description=_report[1],
-        #     published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        #     created_by_ref=self.stix_identity,
-        #     object_marking_refs=TLP_WHITE,
-        #     labels=["threat-report"],
-        #     object_refs=created_stix_indicator_id_list,
-        #     custom_properties={CustomProperties.TAG_TYPE: self.stix_tag},
-        # )
-        # stix_bundle.append(stix_report)
-        # self.helper.log_info("Sending bundle....")
-        # sending_stix_bundle = Bundle(objects=stix_bundle)
-        # self.helper.send_stix2_bundle(
-        #     bundle=sending_stix_bundle.serialize(), update=True
-        # )
-        # self.helper.log_info("STIX Bundle has been sent.")
-        # self.helper.log_info("Archiving files...")
-        # archiving files
         _src = self._data_path + "/files/" + self.filename
         _dest = (
             self._data_path
