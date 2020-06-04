@@ -41,7 +41,7 @@ class Talosip:
         self.entity_identity = self.helper.api.identity.create(
             name="Cisco Talos",
             type="Organization",
-            description="Talosintilligence  IP Blacklist",
+            description="Talosintilligence IP Blacklist",
         )
         # create marking definition
         self.tlp_white_marking_definition = self.helper.api.marking_definition.read(
@@ -75,7 +75,7 @@ class Talosip:
             type="IPv4-Addr",
             observable_value=ip,
             createdByRef=self.entity_identity["id"],
-            description="from talos via OpenCTI",
+            description="from talosip",
             markingDefinitions=self.tlp_white_marking_definition["id"],
             createIndicator=False,
         )
@@ -112,6 +112,7 @@ class Talosip:
             markingDefinitions=self.tlp_white_marking_definition["id"],
             update=self.update_existing_data,
             main_observable_type="ipv4-addr",
+            description="from talosip",
         )
         # add tags
         self.helper.api.stix_entity.add_tag(
