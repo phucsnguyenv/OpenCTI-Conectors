@@ -114,7 +114,6 @@ class Talosip:
             update=self.update_existing_data,
             main_observable_type="ipv4-addr",
             description="from talosip",
-            update=self.update_existing_data
         )
         # add tags
         self.helper.api.stix_entity.add_tag(
