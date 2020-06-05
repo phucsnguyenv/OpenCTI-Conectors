@@ -180,6 +180,7 @@ class Talosip:
                     report_class="Threat Report",
                     createdByRef=self.entity_identity["id"],
                     external_reference_id=_report_external_reference["id"],
+                    modified=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 )
                 # add tag to report
                 self.helper.api.stix_entity.add_tag(
