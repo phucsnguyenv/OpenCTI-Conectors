@@ -175,13 +175,14 @@ class Talosip:
                 # create report
                 created_report = self.helper.api.report.create(
                     name="Talos Intelligence IP Blacklist",
-                    published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    published=self._get_published_report,
                     markingDefinitions=self.tlp_white_marking_definition["id"],
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
                     createdByRef=self.entity_identity["id"],
                     external_reference_id=_report_external_reference["id"],
                     update=self.update_existing_data,
+                    modified=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 )
                 # add tag to report
                 self.helper.api.stix_entity.add_tag(
