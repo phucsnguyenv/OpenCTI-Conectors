@@ -13,9 +13,13 @@ Check out my code on github and let me know if there are any problems.
 
 
 ## Changed logs
-###v1.4.2
+### v1.4.3
+- update `talosip` v1.4.1
+  + All entities now created by pycti client
+
+### v1.4.2
 - update `internal-import` v1.3.6
-  + All entity now created by pycti client
+  + All entities now created by pycti client
 
 ### v.1.4.1
 - update `talosip` v1.4.0
