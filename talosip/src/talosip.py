@@ -49,7 +49,6 @@ class Talosip:
         )
         # report published time
         self.published_report = None
-
     def _get_published_report(self):
         published_time = (
             os.path.dirname(os.path.abspath(__file__)) + "/published_time.txt"
