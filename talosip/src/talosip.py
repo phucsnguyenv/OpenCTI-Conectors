@@ -175,7 +175,7 @@ class Talosip:
                 # create report
                 created_report = self.helper.api.report.create(
                     name="Talos Intelligence IP Blacklist",
-                    published=self._get_published_report,
+                    published=self._get_published_report(),
                     markingDefinitions=self.tlp_white_marking_definition["id"],
                     description="This report represents the blacklist provided by Cisco Talos",
                     report_class="Threat Report",
