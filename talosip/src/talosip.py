@@ -49,6 +49,8 @@ class Talosip:
         )
         # report published time
         self.published_report = None
+        self.being_added = []
+        self.being_deleted = []
 
     def _get_published_report(self):
         published_time = (
@@ -65,6 +67,24 @@ class Talosip:
             write = open("published_time.txt", "w")
             write.write(published)
         return published
+
+    def check_diff(self):
+        # should use try except
+        old_iplist = open("old_ip_blacklist.txt", "r")
+        new_iplist = open("ip_blacklist.txt", "r")
+
+        parsed_old_list = []
+        parsed_new_list = []
+        for ip in old_iplist:
+            ip = ip.strip("\n")
+            parsed_old_list.append(ip)
+        for ip in new_iplist:
+            ip = ip.strip("\n")
+            parsed_new_list.append(ip)
+        self.being_added = [ip for ip in parsed_new_list if ip not in parsed_old_list]
+        self.being_deleted = [ip for ip in parsed_old_list if ip not in parsed_new_list]
+        self.helper.log_info("List IP will be added {}".format(self.being_added))
+        self.helper.log_info("List IP will be deleted {}".format(self.being_deleted))
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
@@ -134,18 +154,22 @@ class Talosip:
         created_observable_id = []
         created_indicator_id = []
         while True:
-            black_list_file = (
+            new_black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
             )
+            old_black_list_file = (
+                os.path.dirname(os.path.abspath(__file__)) + "/old_ip_blacklist.txt"
+            )
+
             # always fetch new file
-            if os.path.isfile(black_list_file):
+            if os.path.isfile(new_black_list_file):
                 self.helper.log_info(
                     "[48] File IP blacklist existing, deleting file..."
                 )
                 # deleting file....
-                os.remove(black_list_file)
+                os.remove(new_black_list_file)
                 self.helper.log_info("[50] File deleted.")
-            elif not os.path.isfile(black_list_file):
+            elif not os.path.isfile(new_black_list_file):
                 self.helper.log_info(
                     "[54] File not exist or deleted. Downloading new file..."
                 )
