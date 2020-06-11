@@ -87,13 +87,6 @@ class Talosip:
         else:
             old_iplist = []
         new_iplist = open(newfile, "r")
-
-        self.helper.log_info(oldfile)
-        self.helper.log_info(newfile)
-        old_iplist = old_iplist.read()
-        new_iplist = new_iplist.read()
-        self.helper.log_info(len(old_iplist))
-        self.helper.log_info(len(new_iplist))
         parsed_old_list = []
         parsed_new_list = []
         for ip in old_iplist:
