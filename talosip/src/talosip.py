@@ -61,6 +61,9 @@ class Talosip:
                     filters=[{"key": "observable_value", "values": [ip]}],
                 )
                 self.helper.api.stix_observable.delete(id=object_result["id"])
+                self.helper.api.stix_domain_entity.delete(
+                    id=object_result["indicators"][0]["id"]
+                )
         else:
             self.helper.log_info("Nothing to delete")
 
