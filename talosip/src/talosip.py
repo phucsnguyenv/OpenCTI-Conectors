@@ -82,10 +82,9 @@ class Talosip:
 
     def check_diff(self, newfile, oldfile):
         # should use try except
-        if os.path.isfile(oldfile):
+        try:
             old_iplist = open(oldfile, "r")
-        else:
-            self.helper.log_info(oldfile)
+        except:
             old_iplist = []
         new_iplist = open(newfile, "r")
         parsed_old_list = []
