@@ -60,9 +60,7 @@ class Talosip:
                 object_result = self.helper.api.stix_observable.read(
                     filters=[{"key": "observable_value", "values": [ip]}],
                 )
-                self.helper.api.stix_observable.delete(
-                    id=object_result["id"]
-                )
+                self.helper.api.stix_observable.delete(id=object_result["id"])
         else:
             self.helper.log_info("Nothing to delete")
 
@@ -235,8 +233,6 @@ class Talosip:
                 id=created_report["id"], entity_id=indicator_id
             )
         self.delete_old_entity()
-        else:
-            raise ValueError("[] Error unknown.")
 
     def start(self):
         self.helper.log_info("[111] Fetching Talos IP database...")
