@@ -95,12 +95,9 @@ class Talosip:
 
         parsed_old_list = []
         parsed_new_list = []
-        if len(old_iplist) > 0:
-            for ip in old_iplist:
-                ip = ip.strip("\n")
-                parsed_old_list.append(ip)
-        else:
-            parsed_old_list = []
+        for ip in old_iplist:
+            ip = ip.strip("\n")
+            parsed_old_list.append(ip)
         for ip in new_iplist:
             ip = ip.strip("\n")
             parsed_new_list.append(ip)
