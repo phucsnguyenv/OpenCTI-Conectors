@@ -184,7 +184,7 @@ class Talosip:
                 "[48] File IP blacklist existing, changing name to old file"
             )
             # deleting file....
-            shutil.move(new_black_list_file, old_black_list_file)
+            shutil.copy(new_black_list_file, old_black_list_file)
             self.helper.log_info("[50] File name changed.")
 
         self.helper.log_info("Downloading file from {}".format(self.talosip_url))
