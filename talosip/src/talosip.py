@@ -85,6 +85,7 @@ class Talosip:
         if os.path.isfile(oldfile):
             old_iplist = open(oldfile, "r")
         else:
+            self.helper.log_info(oldfile)
             old_iplist = []
         new_iplist = open(newfile, "r")
         parsed_old_list = []
