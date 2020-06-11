@@ -3,6 +3,7 @@ import os
 import time
 import wget
 from datetime import datetime
+import shutil
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
 from stix2 import TLP_WHITE
@@ -52,6 +53,19 @@ class Talosip:
         self.being_added = []
         self.being_deleted = []
 
+    def delete_old_entity(self):
+        if len(self.being_deleted) > 0:
+            self.helper.log_info("Deleting old entity")
+            for ip in self.being_deleted:
+                object_result = self.helper.api.stix_observable.read(
+                    filters=[{"key": "observable_value", "values": [ip]}],
+                )
+                self.helper.api.stix_observable.delete(
+                    id=object_result["id"]
+                )
+        else:
+            self.helper.log_info("Nothing to delete")
+
     def _get_published_report(self):
         published_time = (
             os.path.dirname(os.path.abspath(__file__)) + "/published_time.txt"
@@ -68,16 +82,22 @@ class Talosip:
             write.write(published)
         return published
 
-    def check_diff(self):
+    def check_diff(self, newfile, oldfile):
         # should use try except
-        old_iplist = open("old_ip_blacklist.txt", "r")
-        new_iplist = open("ip_blacklist.txt", "r")
+        if os.path.isfile(oldfile):
+            old_iplist = open(oldfile, "r")
+        else:
+            old_iplist = []
+        new_iplist = open(newfile, "r")
 
         parsed_old_list = []
         parsed_new_list = []
-        for ip in old_iplist:
-            ip = ip.strip("\n")
-            parsed_old_list.append(ip)
+        if len(old_iplist) > 0:
+            for ip in old_iplist:
+                ip = ip.strip("\n")
+                parsed_old_list.append(ip)
+        else:
+            parsed_old_list = []
         for ip in new_iplist:
             ip = ip.strip("\n")
             parsed_new_list.append(ip)
@@ -153,81 +173,70 @@ class Talosip:
     def _process_file(self):
         created_observable_id = []
         created_indicator_id = []
-        while True:
-            new_black_list_file = (
-                os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
+        new_black_list_file = (
+            os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
+        )
+
+        # always fetch new file
+        if os.path.isfile(new_black_list_file):
+            self.helper.log_info(
+                "[48] File IP blacklist existing, changing name to old file"
             )
+            # deleting file....
+            shutil.move(new_black_list_file, old_black_list_file)
+            self.helper.log_info("[50] File name changed.")
             old_black_list_file = (
                 os.path.dirname(os.path.abspath(__file__)) + "/old_ip_blacklist.txt"
             )
 
-            # always fetch new file
-            if os.path.isfile(new_black_list_file):
-                self.helper.log_info(
-                    "[48] File IP blacklist existing, deleting file..."
-                )
-                # deleting file....
-                os.remove(new_black_list_file)
-                self.helper.log_info("[50] File deleted.")
-            elif not os.path.isfile(new_black_list_file):
-                self.helper.log_info(
-                    "[54] File not exist or deleted. Downloading new file..."
-                )
-                self.helper.log_info(
-                    "Downloading file from {}".format(self.talosip_url)
-                )
-                wget.download(self.talosip_url, out="ip_blacklist.txt")
-                # processing message...
-                ip_lists = open("ip_blacklist.txt", "r")
-                self.helper.log_info("[59] File downloaded. Processing data...")
-                for ip in ip_lists:
-                    ip = ip.strip("\n")
-                    created_observable = self._create_observable(ip)
-                    created_indicator = self._create_indicator(
-                        ip, created_observable["id"]
-                    )
-                    created_observable_id.append(created_observable["id"])
-                    created_indicator_id.append(created_indicator["id"])
-                # create a report
-                # create external reference
-                self.helper.log_info("Creating external reference...")
-                _report_external_reference = self.helper.api.external_reference.create(
-                    source_name="Talos Intelligence",
-                    url="https://talosintelligence.com/",
-                )
-                self.helper.log_info("Creating report...")
-                # create report
-                created_report = self.helper.api.report.create(
-                    name="Talos Intelligence IP Blacklist",
-                    published=self._get_published_report(),
-                    markingDefinitions=self.tlp_white_marking_definition["id"],
-                    description="This report represents the blacklist provided by Cisco Talos",
-                    report_class="Threat Report",
-                    createdByRef=self.entity_identity["id"],
-                    external_reference_id=_report_external_reference["id"],
-                    update=self.update_existing_data,
-                    modified=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                )
-                # add tag to report
-                self.helper.api.stix_entity.add_tag(
-                    id=created_report["id"], tag_id=self.talos_tag["id"]
-                )
-                # add observables to report from id list
-                self.helper.log_info("Adding observables to report...")
-                for observable_id in created_observable_id:
-                    self.helper.api.report.add_stix_observable(
-                        id=created_report["id"], stix_observable_id=observable_id
-                    )
-                # add indicators to report from id list
-                self.helper.log_info("Adding entity...")
-                for indicator_id in created_indicator_id:
-                    self.helper.api.report.add_stix_entity(
-                        id=created_report["id"], entity_id=indicator_id
-                    )
-
-                break
-            else:
-                raise ValueError("[] Error unknown.")
+        self.helper.log_info("Downloading file from {}".format(self.talosip_url))
+        # wget.download(self.talosip_url, out="ip_blacklist.txt")
+        # processing message...
+        self.helper.log_info("[59] File downloaded. Processing data...")
+        self.check_diff(new_black_list_file, old_black_list_file)
+        for ip in self.being_added:
+            created_observable = self._create_observable(ip)
+            created_indicator = self._create_indicator(ip, created_observable["id"])
+            created_observable_id.append(created_observable["id"])
+            created_indicator_id.append(created_indicator["id"])
+            # create a report
+            # create external reference
+        self.helper.log_info("Creating external reference...")
+        _report_external_reference = self.helper.api.external_reference.create(
+            source_name="Talos Intelligence", url="https://talosintelligence.com/",
+        )
+        self.helper.log_info("Creating report...")
+        # create report
+        created_report = self.helper.api.report.create(
+            name="Talos Intelligence IP Blacklist",
+            published=self._get_published_report(),
+            markingDefinitions=self.tlp_white_marking_definition["id"],
+            description="This report represents the blacklist provided by Cisco Talos",
+            report_class="Threat Report",
+            createdByRef=self.entity_identity["id"],
+            external_reference_id=_report_external_reference["id"],
+            update=self.update_existing_data,
+            modified=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        )
+        # add tag to report
+        self.helper.api.stix_entity.add_tag(
+            id=created_report["id"], tag_id=self.talos_tag["id"]
+        )
+        # add observables to report from id list
+        self.helper.log_info("Adding observables to report...")
+        for observable_id in created_observable_id:
+            self.helper.api.report.add_stix_observable(
+                id=created_report["id"], stix_observable_id=observable_id
+            )
+            # add indicators to report from id list
+        self.helper.log_info("Adding entity...")
+        for indicator_id in created_indicator_id:
+            self.helper.api.report.add_stix_entity(
+                id=created_report["id"], entity_id=indicator_id
+            )
+        self.delete_old_entity()
+        else:
+            raise ValueError("[] Error unknown.")
 
     def start(self):
         self.helper.log_info("[111] Fetching Talos IP database...")
