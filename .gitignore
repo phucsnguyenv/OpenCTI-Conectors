@@ -1,2 +1,8 @@
 .vscode
 .vscode/settings.json
+talosip/src/ip_blacklist.txt
+talosip/src/old_ip_blacklist.txt
+.vscode/settings.json
+.vscode/settings.json
+talosip/src/published_time.txt
+.vscode/settings.json

@@ -97,8 +97,16 @@ class Talosip:
             parsed_new_list.append(ip)
         self.being_added = [ip for ip in parsed_new_list if ip not in parsed_old_list]
         self.being_deleted = [ip for ip in parsed_old_list if ip not in parsed_new_list]
-        self.helper.log_info("List IP will be added {}".format(self.being_added))
-        self.helper.log_info("List IP will be deleted {}".format(self.being_deleted))
+        self.helper.log_info(
+            "{}/{} IOCs that are new will be added.".format(
+                len(self.being_added), len(parsed_new_list)
+            )
+        )
+        self.helper.log_info(
+            "{} IOCs that are no longer in the list will be deleted.".format(
+                len(self.being_deleted)
+            )
+        )
 
     def get_interval(self):
         return int(self.talosip_interval) * 60 * 60 * 24
