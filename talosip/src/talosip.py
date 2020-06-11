@@ -174,6 +174,9 @@ class Talosip:
         new_black_list_file = (
             os.path.dirname(os.path.abspath(__file__)) + "/ip_blacklist.txt"
         )
+        old_black_list_file = (
+            os.path.dirname(os.path.abspath(__file__)) + "/old_ip_blacklist.txt"
+        )
 
         # always fetch new file
         if os.path.isfile(new_black_list_file):
@@ -183,9 +186,6 @@ class Talosip:
             # deleting file....
             shutil.move(new_black_list_file, old_black_list_file)
             self.helper.log_info("[50] File name changed.")
-            old_black_list_file = (
-                os.path.dirname(os.path.abspath(__file__)) + "/old_ip_blacklist.txt"
-            )
 
         self.helper.log_info("Downloading file from {}".format(self.talosip_url))
         # wget.download(self.talosip_url, out="ip_blacklist.txt")
