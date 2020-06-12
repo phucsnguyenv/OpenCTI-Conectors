@@ -247,7 +247,7 @@ class Talosip:
         self.delete_old_entity()
 
     def start(self):
-        self.helper.log_info("[111] Fetching Talos IP database...")
+        self.helper.log_info("[250] Fetching Talos IP database...")
         while True:
             try:
                 timestamp = int(time.time())
@@ -262,12 +262,12 @@ class Talosip:
                     )
                 else:
                     last_run = None
-                    self.helper.log_info("[126] Connector has never run")
+                    self.helper.log_info("[265] Connector has never run")
                 if last_run is None or (
                     (timestamp - last_run)
                     > ((int(self.talosip_interval)) * 60 * 60 * 24)
                 ):
-                    self.helper.log_info("[131] Connector will run!")
+                    self.helper.log_info("[270] Connector will run!")
                     self._process_file()
                     self.helper.log_info(
                         "[273] Connector successfully run, storing last_run as "
