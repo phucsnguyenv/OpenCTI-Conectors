@@ -193,16 +193,16 @@ class Talosip:
         # always fetch new file
         if os.path.isfile(new_black_list_file):
             self.helper.log_info(
-                "[48] File IP blacklist existing, changing name to old file"
+                "[196] File IP blacklist existing, changing name to old file"
             )
             # deleting file....
             shutil.move(new_black_list_file, old_black_list_file)
-            self.helper.log_info("[50] File name changed.")
+            self.helper.log_info("[200] File name changed.")
 
         self.helper.log_info("Downloading file from {}".format(self.talosip_url))
         wget.download(self.talosip_url, out="ip_blacklist.txt")
         # processing message...
-        self.helper.log_info("[59] File downloaded. Processing data...")
+        self.helper.log_info("[205] File downloaded. Processing data...")
         self.check_diff(new_black_list_file, old_black_list_file)
         for ip in self.being_added:
             created_observable = self._create_observable(ip)
@@ -255,7 +255,7 @@ class Talosip:
                 if current_state is not None and "last_run" in current_state:
                     last_run = current_state["last_run"]
                     self.helper.log_info(
-                        "[119] Connector last run: "
+                        "[258] Connector last run: "
                         + datetime.utcfromtimestamp(last_run).strftime(
                             "%Y-%m-%d %H:%M:%S"
                         )
@@ -270,12 +270,12 @@ class Talosip:
                     self.helper.log_info("[131] Connector will run!")
                     self._process_file()
                     self.helper.log_info(
-                        "[134] Connector successfully run, storing last_run as "
+                        "[273] Connector successfully run, storing last_run as "
                         + str(timestamp)
                     )
                     self.helper.set_state({"last_run": timestamp})
                     self.helper.log_info(
-                        "[137] Last_run stored, next run in: "
+                        "[278] Last_run stored, next run in: "
                         + str(round(self.get_interval() / 60 / 60 / 24, 2))
                         + " days"
                     )
@@ -283,13 +283,13 @@ class Talosip:
                 else:
                     new_interval = self.get_interval() - (timestamp - last_run)
                     self.helper.log_info(
-                        "[145] Connector will not run, next run in: "
+                        "[286] Connector will not run, next run in: "
                         + str(round(new_interval / 60 / 60 / 24, 2))
                         + " days"
                     )
                     time.sleep(3600)
             except (KeyboardInterrupt, SystemExit):
-                self.helper.log_info("[151] Connector stop")
+                self.helper.log_info("[292] Connector stop")
                 exit(0)
             except Exception as e:
                 self.helper.log_error(str(e))
