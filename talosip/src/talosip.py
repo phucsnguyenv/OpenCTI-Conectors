@@ -57,12 +57,16 @@ class Talosip:
         if len(self.being_deleted) > 0:
             self.helper.log_info("Deleting old entity")
             for ip in self.being_deleted:
+                # listing being deleted
                 object_result = self.helper.api.stix_observable.read(
                     filters=[{"key": "observable_value", "values": [ip]}],
                 )
+                # deleting observable
                 self.helper.api.stix_observable.delete(id=object_result["id"])
+                # deleting indicators
                 for indicator_id in object_result["indicatorsIds"]:
                     self.helper.api.stix_domain_entity.delete(id=indicator_id)
+                # deleting external references
                 for external_ref_id in object_result["externalReferencesIds"]:
                     self.helper.api.stix_domain_entity.delete(id=external_ref_id)
         else:
