@@ -61,9 +61,10 @@ class Talosip:
                     filters=[{"key": "observable_value", "values": [ip]}],
                 )
                 self.helper.api.stix_observable.delete(id=object_result["id"])
-                self.helper.api.stix_domain_entity.delete(
-                    id=object_result["indicators"][0]["id"]
-                )
+                for indicator_id in object_result["indicatorsIds"]:
+                    self.helper.api.stix_domain_entity.delete(id=indicator_id)
+                for external_ref_id in object_result["externalReferencesIds"]:
+                    self.helper.api.stix_domain_entity.delete(id=external_ref_id)
         else:
             self.helper.log_info("Nothing to delete")
 
