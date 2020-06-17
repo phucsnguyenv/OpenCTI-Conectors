@@ -15,7 +15,8 @@ Check out my code on github and let me know if there are any problems.
 ## Changed logs
 ### v1.5.0
 - release `talosip` v1.5.0
-  + Remove stored IOCs that are no longer in IP blacklist 
+  + Improve performance. Reduce resource comsumed while addin new entities.
+  + Remove stored IOCs that are no longer in IP blacklist.
 
 ### v1.4.3
 - update `talosip` v1.4.1
