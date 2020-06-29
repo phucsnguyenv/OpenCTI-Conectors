@@ -29,6 +29,9 @@ class Talosip:
             ["connector", "update_existing_data"],
             config,
         )
+        self.delete_old_data = get_config_variable(
+            "DELETE_OLD_DATA", ["connector", "delete_old_data"], config
+        )
         self.helper = OpenCTIConnectorHelper(config)
         # get tag
         self.talos_tag = self.helper.api.tag.create(
@@ -111,7 +114,7 @@ class Talosip:
             )
         )
         self.helper.log_info(
-            "{} IOCs that are no longer in the list will be deleted.".format(
+            "{} IOCs that are no longer in the list can be deleted.".format(
                 len(self.being_deleted)
             )
         )
@@ -244,10 +247,14 @@ class Talosip:
             self.helper.api.report.add_stix_entity(
                 id=created_report["id"], entity_id=indicator_id
             )
-        self.delete_old_entity()
+        self.helper.log_info("Delete old data is set to {}".format(self.delete_old_data))
+        if self.delete_old_data:
+            self.delete_old_entity()
+        else:
+            pass 
 
     def start(self):
-        self.helper.log_info("[250] Fetching Talos IP database...")
+        self.helper.log_info("[256] Fetching Talos IP database...")
         while True:
             try:
                 timestamp = int(time.time())
