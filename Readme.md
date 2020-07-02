@@ -13,6 +13,10 @@ Check out my code on github and let me know if there are any problems.
 
 
 ## Changed logs
+### v1.5.1
+- update `talosip` 
+  + Add deleting IOCs option
+
 ### v1.5.0
 - release `talosip` v1.5.0
   + Improve performance. Reduce resource comsumed while addin new entities.
