@@ -13,7 +13,6 @@ services:
           - CONNECTOR_UPDATE_EXISTING_DATA=true
           - CONNECTOR_LOG_LEVEL=info
           - TALOSIP_URL=https://talosintelligence.com/documents/ip-blacklist
-          - REPORT_ID = ChangeMe #UUID4
           - TALOSIP_INTERVAL=1 # Days
           - DELETE_OLD_DATA=true
         depends_on: 
