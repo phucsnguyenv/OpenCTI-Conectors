@@ -141,21 +141,7 @@ class Talosip:
             id=created_observable["id"], tag_id=self.ipv4_tag["id"]
         )
         # create external references
-        virus_ref = self.helper.api.external_reference.create(
-            source_name="Virustotal " + ip,
-            url="https://www.virustotal.com/gui/search/" + ip,
-        )
-        thre_ref = self.helper.api.external_reference.create(
-            source_name="Threatcrowd " + ip,
-            url="https://www.threatcrowd.org/pivot.php?data=" + ip,
-        )
         # adding external references
-        self.helper.api.stix_entity.add_external_reference(
-            id=created_observable["id"], external_reference_id=virus_ref["id"]
-        )
-        self.helper.api.stix_entity.add_external_reference(
-            id=created_observable["id"], external_reference_id=thre_ref["id"]
-        )
         return created_observable
 
     def _create_indicator(self, ip, observable_id):

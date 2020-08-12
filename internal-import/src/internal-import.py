@@ -116,21 +116,7 @@ class InternalImport:
                     description="from interal-import",
                 )
                 # create external references
-                virus_ref = self.helper.api.external_reference.create(
-                    source_name="Virustotal " + row[0],
-                    url="https://www.virustotal.com/gui/search/" + row[0],
-                )
-                thre_ref = self.helper.api.external_reference.create(
-                    source_name="Threatcrowd " + row[0],
-                    url="https://www.threatcrowd.org/pivot.php?data=" + row[0],
-                )
                 # attach external references to observable
-                self.helper.api.stix_entity.add_external_reference(
-                    id=created_observable["id"], external_reference_id=virus_ref["id"]
-                )
-                self.helper.api.stix_entity.add_external_reference(
-                    id=created_observable["id"], external_reference_id=thre_ref["id"]
-                )
                 # adding tag
                 self.helper.api.stix_entity.add_tag(
                     id=created_observable["id"], tag_id=self.tag["id"]
