@@ -2,5 +2,5 @@
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
   "python.formatting.provider": "black",
-  "python.pythonPath": "C:\\Users\\phucnv\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe"
+  "python.pythonPath": "/usr/local/bin/python3"
 }

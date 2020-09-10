@@ -13,6 +13,10 @@ Check out my code on github and let me know if there are any problems.
 
 
 ## Changed logs
+### v1.5.2
+- update `internal-import` v1.3.8
+  + `_report` line is now optional in source IOCs files
+
 ### v1.5.1
 - update `talosip` 
   + Add deleting IOCs option

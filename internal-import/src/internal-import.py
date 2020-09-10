@@ -101,6 +101,7 @@ class InternalImport:
         created_observables_id = []
         created_indicators_id = []
         self.helper.log_info("Creating Observable data")
+        _report = ("_report", "Descrition autogeneration")
         for row in data:
             if row[0] == "_report":
                 _report = row
