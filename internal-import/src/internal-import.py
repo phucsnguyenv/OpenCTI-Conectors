@@ -108,13 +108,17 @@ class InternalImport:
             else:
                 # creating observable
                 observable_type = self._get_type(row[1])
+                if row[2]:
+                    observable_description = row[2]
+                else:
+                    observable_description = "from internal-import"
                 self.helper.log_info("Creating Observale...")
                 created_observable = self.helper.api.stix_observable.create(
                     type=observable_type,
                     observable_value=row[0],
                     createdByRef=self.identity["id"],
                     markingDefinitions=self.markingDefinitions["id"],
-                    description="from interal-import",
+                    description=observable_description,
                 )
                 # create external references
                 # attach external references to observable

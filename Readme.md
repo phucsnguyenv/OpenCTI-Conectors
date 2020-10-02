@@ -13,6 +13,9 @@ Check out my code on github and let me know if there are any problems.
 
 
 ## Changed logs
+### v1.5.3
+- fix bug `internal-import` v1.3.9
+
 ### v1.5.2
 - update `internal-import` v1.3.8
   + `_report` line is now optional in source IOCs files
