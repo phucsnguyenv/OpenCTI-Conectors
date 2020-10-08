@@ -13,6 +13,8 @@ Check out my code on github and let me know if there are any problems.
 
 
 ## Changed logs
+### v1.6.0
+- fix bug `internal-import`
 ### v1.5.3
 - fix bug `internal-import` v1.3.9
 

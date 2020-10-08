@@ -80,10 +80,10 @@ class InternalImport:
     def _indicator_create(self, data, observable_id):
         _type = self._get_type(data[1]).lower()
         _value = data[0]
-        if data[2]:
+        try:
             observable_description = data[2]
-        else:
-            observable_description = "from internal-import"
+        except:
+            observable_description = "from fireeye"
         _indicator = self.helper.api.indicator.create(
             name=_value,
             indicator_pattern="[" + _type + ":value = '" + _value + "']",
@@ -118,10 +118,10 @@ class InternalImport:
             else:
                 # creating observable
                 observable_type = self._get_type(row[1])
-                if row[2]:
+                try:
                     observable_description = row[2]
-                else:
-                    observable_description = "from internal-import"
+                except:
+                    observable_description = "from fireeye"
                 self.helper.log_info("Creating Observale...")
                 created_observable = self.helper.api.stix_observable.create(
                     type=observable_type,
