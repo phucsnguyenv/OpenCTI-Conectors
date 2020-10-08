@@ -26,11 +26,14 @@ class InternalImport:
         self.interval_scan = get_config_variable(
             "INTERVAL_SCAN", ["internal_import", "interval_scan"], config
         )
+        self.report_id = get_config_variable(
+            "REPORT_ID", ["connector", "report_id"], config
+        )
         self._data_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         self.identity = self.helper.api.identity.create(
-            name="Internal Collector",
+            name="FireEye Collector",
             type="Organization",
-            description="Importing internal data from CSV file",
+            description="Import FireEye's IOCs",
         )
         self.markingDefinitions = self.helper.api.marking_definition.create(
             definition_type="tlp", definition="TLP:WHITE"
@@ -80,10 +83,10 @@ class InternalImport:
     def _indicator_create(self, data, observable_id):
         _type = self._get_type(data[1]).lower()
         _value = data[0]
-        if data[2]:
+        try:
             observable_description = data[2]
-        else:
-            observable_description = "from internal-import"
+        except:
+            observable_description = "from fireeye"
         _indicator = self.helper.api.indicator.create(
             name=_value,
             indicator_pattern="[" + _type + ":value = '" + _value + "']",
@@ -100,10 +103,9 @@ class InternalImport:
         # adding tag
         self.helper.log_info("Adding tag")
         self.helper.api.stix_entity.add_tag(id=_indicator["id"], tag_id=self.tag["id"])
-        if "IOCsFromFE" in self.filename:
-            self.helper.api.stix_entity.add_tag(
-                id=_indicator["id"], tag_id=self.tagFE["id"]
-            )
+        self.helper.api.stix_entity.add_tag(
+            id=_indicator["id"], tag_id=self.tagFE["id"]
+        )
         return _indicator
 
     def _process_message(self, data):
@@ -111,66 +113,48 @@ class InternalImport:
         created_observables_id = []
         created_indicators_id = []
         self.helper.log_info("Creating Observable data")
-        _report = ("_report", "Descrition autogeneration")
         for row in data:
-            if row[0] == "_report":
-                _report = row
-            else:
-                # creating observable
-                observable_type = self._get_type(row[1])
-                if row[2]:
-                    observable_description = row[2]
-                else:
-                    observable_description = "from internal-import"
-                self.helper.log_info("Creating Observale...")
-                created_observable = self.helper.api.stix_observable.create(
-                    type=observable_type,
-                    observable_value=row[0],
-                    createdByRef=self.identity["id"],
-                    markingDefinitions=self.markingDefinitions["id"],
-                    description=observable_description,
-                )
-                # create external references
-                # attach external references to observable
-                # adding tag
-                self.helper.api.stix_entity.add_tag(
-                    id=created_observable["id"], tag_id=self.tag["id"]
-                )
-                if "IOCsFromFE" in self.filename:
-                    self.helper.api.stix_entity.add_tag(
-                        id=created_observable["id"], tag_id=self.tagFE["id"]
-                    )
-                # this should be stix_id_key
-                created_observables_id.append(created_observable["id"])
-                created_indicator = self._indicator_create(
-                    row, created_observable["id"]
-                )
-                created_indicators_id.append(created_indicator["id"])
+            # creating observable
+            observable_type = self._get_type(row[1])
+            try:
+                observable_description = row[2]
+            except:
+                observable_description = "from fireeye"
+            self.helper.log_info("Creating Observale...")
+            created_observable = self.helper.api.stix_observable.create(
+                type=observable_type,
+                observable_value=row[0],
+                createdByRef=self.identity["id"],
+                markingDefinitions=self.markingDefinitions["id"],
+                description=observable_description,
+            )
+            # create external references
+            # attach external references to observable
+            # adding tag
+            self.helper.api.stix_entity.add_tag(
+                id=created_observable["id"], tag_id=self.tag["id"]
+            )
+            self.helper.api.stix_entity.add_tag(
+                id=created_observable["id"], tag_id=self.tagFE["id"]
+            )
+            # this should be stix_id_key
+            created_observables_id.append(created_observable["id"])
+            created_indicator = self._indicator_create(row, created_observable["id"])
+            created_indicators_id.append(created_indicator["id"])
         # Creating report
-        self.helper.log_info("Generating report...")
-        created_report = self.helper.api.report.create(
-            name="Data imported from {}".format(self.filename),
-            published=datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            createdByRef=self.identity["id"],
-            markingDefinitions=self.markingDefinitions["id"],
-            description=_report[1],
-            report_class="Internal Report",
-        )
         # adding observable
-        self.helper.log_info("Attaching observables to report")
+        self.helper.log_info("Attaching observables to existing report")
         for observable_id in created_observables_id:
             self.helper.api.report.add_stix_observable(
-                id=created_report["id"], stix_observable_id=observable_id
+                id=self.report_id, stix_observable_id=observable_id
             )
         # adding tag
-        self.helper.api.stix_entity.add_tag(
-            id=created_report["id"], tag_id=self.tag["id"]
-        )
+        self.helper.api.stix_entity.add_tag(id=self.report_id, tag_id=self.tag["id"])
         # adding indicator
         self.helper.log_info("Adding indicators to report")
         for indicator_id in created_indicators_id:
             self.helper.api.report.add_stix_entity(
-                id=created_report["id"], entity_id=indicator_id
+                id=self.report_id, entity_id=indicator_id
             )
         _src = self._data_path + "/files/" + self.filename
         _dest = (
@@ -190,10 +174,10 @@ class InternalImport:
 
 
 if __name__ == "__main__":
-    try:
-        importInstance = InternalImport()
-        importInstance.start()
-    except Exception as e:
-        print(e)
-        time.sleep(5)
-        exit(0)
+    # try:
+    importInstance = InternalImport()
+    importInstance.start()
+# except Exception as e:
+#     print(e)
+#     time.sleep(5)
+#     exit(0)

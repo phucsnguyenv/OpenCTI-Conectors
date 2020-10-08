@@ -233,11 +233,13 @@ class Talosip:
             self.helper.api.report.add_stix_entity(
                 id=created_report["id"], entity_id=indicator_id
             )
-        self.helper.log_info("Delete old data is set to {}".format(self.delete_old_data))
+        self.helper.log_info(
+            "Delete old data is set to {}".format(self.delete_old_data)
+        )
         if self.delete_old_data:
             self.delete_old_entity()
         else:
-            pass 
+            pass
 
     def start(self):
         self.helper.log_info("[256] Fetching Talos IP database...")

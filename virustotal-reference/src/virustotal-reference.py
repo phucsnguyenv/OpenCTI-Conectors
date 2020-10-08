@@ -1,8 +1,9 @@
 import yaml
 import json
-import os 
+import os
 
 from pycti import OpenCTIConnectorHelper, get_config_variable
+
 
 class VirustotalReference:
     def __init__(self):
@@ -17,7 +18,7 @@ class VirustotalReference:
     def create_reference(self, data):
         virus_ref = self.helper.api.external_reference.create(
             source_name="Virustotal " + data,
-            url="https://www.virustotal.com/gui/search/" + data
+            url="https://www.virustotal.com/gui/search/" + data,
         )
         return virus_ref
 
@@ -30,13 +31,12 @@ class VirustotalReference:
         # self.helper.log_info("External reference created with id {}".format(created_reference["id"]))
         # self.helper.log_info("Attaching the reference to {}".format(entity_id))
         self.helper.api.stix_entity.add_external_reference(
-            id=entity_id,
-            external_reference_id=created_reference["id"]
+            id=entity_id, external_reference_id=created_reference["id"]
         )
-        
 
     def start(self):
         self.helper.listen(self._process_message)
+
 
 if __name__ == "__main__":
     virustotalInstance = VirustotalReference()
